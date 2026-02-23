@@ -1,0 +1,2534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;SC Command&quot;,&quot;short_name&quot;:&quot;SC-CMD&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%230A0A0A&quot;,&quot;theme_color&quot;:&quot;%23000000&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='none' stroke='%23F59E0B' stroke-width='8'/><text x='50' y='65' font-size='40' fill='white' text-anchor='middle'>SC</text></svg>&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+<title>S+C Command v11.3</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0A0A0A;--black-pure:#000;--white:#FFF;
+  --amber:#F59E0B;--amber-bright:#FBBF24;--amber-dim:rgba(245,158,11,0.15);--amber-glow:rgba(245,158,11,0.6);
+  --green:#22C55E;--green-dim:rgba(34,197,94,0.15);--green-glow:rgba(34,197,94,0.6);
+  --cyan:#06B6D4;--cyan-dim:rgba(6,182,212,0.15);--cyan-glow:rgba(6,182,212,0.6);
+  --red:#EF4444;--red-dim:rgba(239,68,68,0.15);--red-glow:rgba(239,68,68,0.6);
+  --purple:#A855F7;--purple-dim:rgba(168,85,247,0.15);--purple-glow:rgba(168,85,247,0.6);
+  --lime:#84CC16;--lime-dim:rgba(132,204,22,0.15);--lime-glow:rgba(132,204,22,0.6);
+  --teal:#14B8A6;--teal-dim:rgba(20,184,166,0.15);--teal-glow:rgba(20,184,166,0.6);
+  --orange:#F97316;--orange-dim:rgba(249,115,22,0.15);--orange-glow:rgba(249,115,22,0.6);
+  --pink:#EC4899;--pink-dim:rgba(236,72,153,0.15);--pink-glow:rgba(236,72,153,0.6);
+  --gray-dark:#111;--gray-mid:#1A1A1A;--gray-light:rgba(255,255,255,0.6);--gray-faint:rgba(255,255,255,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:var(--black-pure);color:var(--white);min-height:100vh;min-height:100dvh;overflow:hidden;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+
+/* HEADER STATS */
+.hdr{display:flex;justify-content:space-around;padding:10px 8px;background:var(--gray-dark);border-bottom:1px solid var(--gray-faint)}
+.st{text-align:center}
+.st-v{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--amber);text-shadow:0 0 10px var(--amber-glow)}
+.st-v.q{color:#EAB308}
+.st-l{font-size:9px;color:var(--gray-light);letter-spacing:.1em;text-transform:uppercase}
+
+/* ORBITAL CONTAINER */
+.orb-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
+.orb{position:relative;width:360px;height:360px}
+
+/* ============================================
+   FAT NEON TUBE RING - 16px THICC
+   ============================================ */
+.ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:16px solid var(--amber);
+  background:
+    radial-gradient(ellipse at 30% 30%,rgba(245,158,11,0.25),transparent 50%),
+    radial-gradient(ellipse at 70% 70%,rgba(245,158,11,0.15),transparent 50%);
+  transition:box-shadow .5s,border-color .5s;
+}
+.ring.idle{box-shadow:0 0 40px var(--amber-glow),0 0 80px rgba(245,158,11,0.2),inset 0 0 40px rgba(245,158,11,0.15)}
+.ring.normal{box-shadow:0 0 50px var(--amber-glow),0 0 100px rgba(245,158,11,0.4),inset 0 0 50px rgba(245,158,11,0.2)}
+.ring.soon{box-shadow:0 0 60px var(--amber-glow),0 0 120px rgba(245,158,11,0.5),inset 0 0 60px rgba(245,158,11,0.25)}
+.ring.urgent{box-shadow:0 0 70px var(--red-glow),0 0 140px rgba(239,68,68,0.6),inset 0 0 70px rgba(239,68,68,0.3);border-color:var(--red);animation:pulse-ring 1s ease-in-out infinite}
+@keyframes pulse-ring{0%,100%{opacity:1}50%{opacity:.85}}
+
+/* 3D tube highlight */
+.ring::before{
+  content:'';position:absolute;inset:-16px;border-radius:50%;
+  border:16px solid transparent;
+  background:linear-gradient(135deg,rgba(255,220,150,0.5),transparent 30%,transparent 70%,rgba(255,220,150,0.25)) border-box;
+  -webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
+  mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  pointer-events:none;
+}
+
+/* SOONEST / FURTHEST BADGES */
+.badge{position:absolute;left:50%;transform:translateX(-50%);text-align:center;background:rgba(0,0,0,0.95);padding:10px 20px;border-radius:6px;border:2px solid;min-width:150px;cursor:pointer;z-index:10}
+.badge.top{top:-55px;border-color:var(--cyan);box-shadow:0 0 30px var(--cyan-glow)}
+.badge.bot{bottom:-55px;border-color:var(--green);box-shadow:0 0 30px var(--green-glow)}
+.badge.empty{opacity:.3}
+.bdg-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;opacity:.7;margin-bottom:3px;font-weight:600}
+.badge.top .bdg-lbl{color:var(--cyan)}
+.badge.bot .bdg-lbl{color:var(--green)}
+.bdg-time{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700}
+.badge.top .bdg-time{color:var(--cyan);text-shadow:0 0 20px var(--cyan-glow)}
+.badge.bot .bdg-time{color:var(--green);text-shadow:0 0 20px var(--green-glow)}
+.bdg-name{font-size:11px;color:var(--gray-light);margin-top:3px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ============================================
+   SCROLLERS - REAL SCROLLING WHEELS
+   ============================================ */
+.mons{
+  position:absolute;
+  left:20px;
+  top:50%;
+  transform:translateY(-50%);
+  height:140px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scroll-snap-type:y mandatory;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  z-index:5;
+}
+.mons::-webkit-scrollbar{display:none}
+.mon{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;font-weight:700;
+  color:var(--gray-light);opacity:.4;
+  cursor:pointer;transition:all .2s;
+  padding:8px 10px;border-radius:4px;letter-spacing:.05em;
+  scroll-snap-align:center;
+  min-height:32px;
+  display:flex;align-items:center;
+}
+.mon:active{background:var(--gray-faint)}
+.mon.on{opacity:1;color:var(--amber);text-shadow:0 0 15px var(--amber-glow);font-size:14px}
+.mon.has::after{content:'•';margin-left:4px;color:var(--cyan);text-shadow:0 0 8px var(--cyan-glow)}
+
+.tms{
+  position:absolute;
+  right:20px;
+  top:50%;
+  transform:translateY(-50%);
+  height:160px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  scroll-snap-type:y mandatory;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  z-index:5;
+}
+.tms::-webkit-scrollbar{display:none}
+.tm{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;font-weight:600;
+  color:var(--gray-light);opacity:.4;
+  cursor:pointer;transition:all .2s;
+  padding:8px 12px;border-radius:4px;
+  scroll-snap-align:center;
+  min-height:32px;
+  display:flex;align-items:center;justify-content:center;
+}
+.tm:active{background:var(--gray-faint)}
+.tm.now{opacity:1;color:var(--amber);background:var(--amber-dim)}
+.tm.work{opacity:1;color:var(--green);background:var(--green-dim);text-shadow:0 0 8px var(--green-glow)}
+.tm.personal{opacity:1;color:var(--purple);background:var(--purple-dim);text-shadow:0 0 8px var(--purple-glow)}
+.tm.prod{opacity:1;color:var(--red);background:var(--red-dim);text-shadow:0 0 8px var(--red-glow)}
+
+/* ============================================
+   CENTER - BIG CLOCK, HUGE DAY
+   ============================================ */
+.ctr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;cursor:pointer;z-index:6}
+
+/* CLOCK - BIGGER! */
+.clk{
+  font-family:'JetBrains Mono',monospace;
+  font-size:32px;  /* Was 18px - NOW BIGGER */
+  font-weight:700;
+  color:var(--amber);
+  letter-spacing:.1em;
+  margin-bottom:0;
+  text-shadow:0 0 25px var(--amber-glow);
+}
+
+/* DAY NUMBER - HUGE */
+.day{
+  font-family:'Oswald',sans-serif;
+  font-size:130px; /* Slightly smaller to fit with bigger clock */
+  font-weight:700;
+  line-height:.85;
+  color:var(--white);
+  opacity:.5;
+  text-shadow:0 0 40px rgba(255,255,255,0.4);
+  transition:color .5s,text-shadow .5s,opacity .5s;
+}
+.day:active{transform:scale(.97)}
+.day.later{color:var(--green);opacity:1;text-shadow:0 0 50px var(--green-glow),0 0 100px rgba(34,197,94,0.5)}
+.day.soon{color:var(--cyan);opacity:1;text-shadow:0 0 50px var(--cyan-glow),0 0 100px rgba(6,182,212,0.5)}
+.day.today{color:var(--amber);opacity:1;text-shadow:0 0 50px var(--amber-glow),0 0 100px rgba(245,158,11,0.5)}
+.day.urgent{color:var(--red);opacity:1;text-shadow:0 0 50px var(--red-glow),0 0 100px rgba(239,68,68,0.5)}
+.day.breathing{animation:pulse-day 5s ease-in-out infinite}
+@keyframes pulse-day{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+
+.day-nav{display:flex;gap:40px;margin-top:8px}
+.day-btn{
+  background:transparent;
+  border:2px solid var(--amber);
+  color:var(--amber);
+  width:32px;height:32px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:14px;font-weight:700;
+  transition:all .2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.day-btn:hover{background:var(--amber);color:var(--black);box-shadow:0 0 20px var(--amber-glow)}
+.day-btn:active{transform:scale(.9)}
+.day-lbl{font-family:'Oswald',sans-serif;font-size:18px;font-weight:600;letter-spacing:.2em;color:var(--gray-light);margin-top:8px}
+
+/* ============================================
+   ORBITAL BUTTONS - 2 LAYERS
+   ============================================ */
+.btns{position:absolute;inset:-30px;pointer-events:none;transition:opacity .3s,transform .3s}
+.btns.hide{opacity:0;pointer-events:none;transform:scale(.85)}
+.btn{
+  position:absolute;
+  width:60px;height:60px;border-radius:50%;
+  background:rgba(10,10,10,0.95);
+  border:3px solid var(--gray-faint);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;pointer-events:auto;
+  transition:all .3s;
+  box-shadow:0 4px 20px rgba(0,0,0,0.6);
+}
+.btn svg{width:30px;height:30px;stroke-width:2;fill:none;transition:all .3s}
+.btn:active{transform:scale(.9)}
+.btn.alert::after{content:'';position:absolute;top:5px;right:5px;width:10px;height:10px;background:var(--red);border-radius:50%;box-shadow:0 0 10px var(--red-glow)}
+
+/* Layer 1: Daily drivers */
+.btn.crm{top:20px;left:20px;border-color:var(--cyan-dim)}.btn.crm svg{stroke:var(--cyan)}
+.btn.crm:hover{border-color:var(--cyan);box-shadow:0 0 30px var(--cyan-glow)}
+.btn.prd{top:20px;right:20px;border-color:var(--red-dim)}.btn.prd svg{stroke:var(--red)}
+.btn.prd:hover{border-color:var(--red);box-shadow:0 0 30px var(--red-glow)}
+.btn.mis{bottom:20px;left:20px;border-color:var(--purple-dim)}.btn.mis svg{stroke:var(--purple)}
+.btn.mis:hover{border-color:var(--purple);box-shadow:0 0 30px var(--purple-glow)}
+.btn.eml{bottom:20px;right:20px;border-color:var(--green-dim)}.btn.eml svg{stroke:var(--green)}
+.btn.eml:hover{border-color:var(--green);box-shadow:0 0 30px var(--green-glow)}
+
+/* Layer 2: Inventory */
+.btn.war{top:20px;left:20px;border-color:var(--teal-dim)}.btn.war svg{stroke:var(--teal)}
+.btn.war:hover{border-color:var(--teal);box-shadow:0 0 30px var(--teal-glow)}
+.btn.ben{top:20px;right:20px;border-color:var(--orange-dim)}.btn.ben svg{stroke:var(--orange)}
+.btn.ben:hover{border-color:var(--orange);box-shadow:0 0 30px var(--orange-glow)}
+.btn.str{bottom:20px;left:20px;border-color:var(--pink-dim)}.btn.str svg{stroke:var(--pink)}
+.btn.str:hover{border-color:var(--pink);box-shadow:0 0 30px var(--pink-glow)}
+.btn.flv{bottom:20px;right:20px;border-color:var(--lime-dim)}.btn.flv svg{stroke:var(--lime)}
+.btn.flv:hover{border-color:var(--lime);box-shadow:0 0 30px var(--lime-glow)}
+
+/* Layer indicator dots */
+.dots{position:absolute;bottom:-70px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--gray-faint);transition:all .3s}
+.dot.on{background:var(--amber);box-shadow:0 0 12px var(--amber-glow)}
+
+/* ============================================
+   HOUR OVERLAY - Tap center to show
+   ============================================ */
+.hr-ov{
+  position:absolute;
+  inset:25px;
+  background:rgba(0,0,0,0.97);
+  border-radius:50%;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:20px 15px;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s;
+  z-index:50;
+  overflow:hidden;
+}
+.hr-ov.open{opacity:1;pointer-events:auto}
+.hr-title{font-family:'Oswald',sans-serif;font-size:20px;color:var(--amber);letter-spacing:.1em;margin-bottom:8px;text-shadow:0 0 15px var(--amber-glow)}
+.hr-list{
+  display:flex;flex-direction:column;gap:3px;
+  max-height:240px;overflow-y:auto;
+  width:100%;padding:0 10px;
+  -webkit-overflow-scrolling:touch;
+}
+.hr-slot{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 12px;
+  background:var(--gray-mid);
+  border-radius:6px;
+  cursor:pointer;
+  border-left:3px solid transparent;
+}
+.hr-slot:active{opacity:.7}
+.hr-slot.work{border-left-color:var(--green)}
+.hr-slot.personal{border-left-color:var(--purple)}
+.hr-slot.prod{border-left-color:var(--red)}
+.hr-tm{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--amber)}
+.hr-evt{font-size:11px;color:var(--white);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hr-empty{font-size:10px;color:var(--gray-light)}
+.hr-close{
+  position:absolute;top:12px;right:12px;
+  width:28px;height:28px;
+  border-radius:50%;
+  background:var(--gray-faint);
+  border:none;color:var(--white);
+  font-size:14px;cursor:pointer;
+}
+
+/* ============================================
+   EVENT EDITOR MODAL
+   ============================================ */
+.evt-modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.9);
+  display:flex;align-items:center;justify-content:center;
+  z-index:200;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+.evt-modal.open{opacity:1;pointer-events:auto}
+.evt-box{
+  background:var(--gray-dark);
+  border-radius:16px;
+  padding:20px;
+  width:90%;max-width:340px;
+  border:1px solid var(--gray-faint);
+}
+.evt-title{
+  font-family:'Oswald',sans-serif;
+  font-size:20px;font-weight:700;
+  color:var(--amber);
+  margin-bottom:16px;
+  text-align:center;
+}
+.evt-field{margin-bottom:14px}
+.evt-label{
+  font-size:11px;
+  color:var(--gray-light);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  margin-bottom:4px;
+  display:block;
+}
+.evt-input{
+  width:100%;
+  padding:12px;
+  background:var(--gray-mid);
+  border:1px solid var(--gray-faint);
+  border-radius:8px;
+  color:var(--white);
+  font-size:14px;
+}
+.evt-input:focus{outline:none;border-color:var(--amber)}
+.evt-select{
+  width:100%;
+  padding:12px;
+  background:var(--gray-mid);
+  border:1px solid var(--gray-faint);
+  border-radius:8px;
+  color:var(--white);
+  font-size:14px;
+  -webkit-appearance:none;
+}
+.evt-types{display:flex;gap:8px;flex-wrap:wrap}
+.evt-type{
+  padding:8px 14px;
+  border-radius:20px;
+  border:2px solid var(--gray-faint);
+  background:transparent;
+  color:var(--gray-light);
+  font-size:12px;font-weight:600;
+  cursor:pointer;
+  transition:all .2s;
+}
+.evt-type:active{transform:scale(.95)}
+.evt-type.on{border-color:var(--amber);color:var(--amber);background:var(--amber-dim)}
+.evt-type.work.on{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+.evt-type.personal.on{border-color:var(--purple);color:var(--purple);background:var(--purple-dim)}
+.evt-type.production.on{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+.evt-btns{display:flex;gap:10px;margin-top:20px}
+.evt-btn{
+  flex:1;
+  padding:14px;
+  border-radius:10px;
+  border:none;
+  font-size:14px;font-weight:700;
+  cursor:pointer;
+  transition:all .2s;
+}
+.evt-btn:active{transform:scale(.95)}
+.evt-btn.cancel{background:var(--gray-faint);color:var(--white)}
+.evt-btn.save{background:var(--amber);color:var(--black)}
+.evt-btn.delete{background:var(--red);color:var(--white);margin-top:10px;width:100%}
+
+/* ============================================
+   PANELS (slide-up sheets)
+   ============================================ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);opacity:0;pointer-events:none;transition:opacity .3s;z-index:100}
+.overlay.open{opacity:1;pointer-events:auto}
+.panel{
+  position:fixed;left:0;right:0;bottom:0;
+  max-height:85vh;
+  background:var(--gray-dark);
+  border-top-left-radius:20px;border-top-right-radius:20px;
+  transform:translateY(100%);
+  transition:transform .3s ease;
+  z-index:101;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.panel.open{transform:translateY(0)}
+.panel-hdr{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--gray-faint);flex-shrink:0}
+.panel-title{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:.1em}
+.panel-close{width:36px;height:36px;border-radius:50%;background:var(--gray-faint);border:none;color:var(--white);font-size:18px;cursor:pointer}
+.panel-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch}
+
+/* Panel cards */
+.p-card{background:var(--gray-mid);border-radius:12px;padding:14px;margin-bottom:10px;border-left:4px solid var(--gray-faint)}
+.p-card.work{border-left-color:var(--green)}
+.p-card.personal{border-left-color:var(--purple)}
+.p-card.urgent{border-left-color:var(--red)}
+.p-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.p-card-title{font-weight:600;font-size:15px;flex:1}
+.p-card-badge{font-size:10px;padding:3px 8px;border-radius:4px;font-weight:700;text-transform:uppercase}
+.p-card-badge.work{background:var(--green-dim);color:var(--green)}
+.p-card-badge.personal{background:var(--purple-dim);color:var(--purple)}
+.p-card-badge.urgent{background:var(--red-dim);color:var(--red)}
+.p-card-meta{font-size:12px;color:var(--gray-light);margin-bottom:8px}
+.p-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Buttons */
+.p-btn{padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.p-btn.primary{background:var(--amber);color:var(--black)}
+.p-btn.primary:hover{box-shadow:0 0 20px var(--amber-glow)}
+.p-btn.secondary{background:var(--gray-faint);color:var(--white)}
+.p-btn.success{background:var(--green-dim);color:var(--green)}
+.p-btn.danger{background:var(--red-dim);color:var(--red)}
+.p-btn.small{padding:5px 10px;font-size:11px}
+
+/* Stats bar in panels */
+.stats-bar{display:flex;justify-content:space-around;padding:12px;background:var(--black);border-bottom:1px solid var(--gray-faint)}
+.stats-bar .st-v{font-size:24px}
+
+/* Filter pills */
+.filters{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+.fil{
+  padding:8px 12px;border-radius:16px;
+  background:var(--gray-faint);color:var(--gray-light);
+  font-size:11px;font-weight:600;
+  white-space:nowrap;cursor:pointer;border:none;
+  transition:all .2s;
+  display:flex;align-items:center;justify-content:center;
+  line-height:1;
+}
+.fil.on{background:var(--amber);color:var(--black)}
+.fil.lead{border:1px solid var(--gray-light)}
+.fil.contacted{border:1px solid var(--cyan)}
+.fil.sample{border:1px solid var(--purple)}
+.fil.negotiating{border:1px solid var(--orange)}
+.fil.closed{border:1px solid var(--green)}
+
+/* CRM Cards */
+.p-card.quest{border-left-color:#EAB308;background:rgba(234,179,8,0.08)}
+.p-card.overdue{border-left-color:var(--red);background:rgba(239,68,68,0.08)}
+.p-card.s-lead{border-left-color:var(--gray-light)}
+.p-card.s-contacted{border-left-color:var(--cyan)}
+.p-card.s-sample{border-left-color:var(--purple)}
+.p-card.s-negotiating{border-left-color:var(--orange)}
+.p-card.s-closed{border-left-color:var(--green)}
+.p-card.s-dead{opacity:.4}
+
+/* Status badges */
+.p-card-badge.b-lead{background:var(--gray-faint);color:var(--gray-light)}
+.p-card-badge.b-contacted{background:var(--cyan-dim);color:var(--cyan)}
+.p-card-badge.b-sample{background:var(--purple-dim);color:var(--purple)}
+.p-card-badge.b-negotiating{background:var(--orange-dim);color:var(--orange)}
+.p-card-badge.b-closed{background:var(--green-dim);color:var(--green)}
+.p-card-badge.b-dead{background:var(--gray-faint);color:var(--gray-light)}
+
+/* Quest glow */
+.quest-icon{color:#EAB308;text-shadow:0 0 8px rgba(234,179,8,0.6);margin-right:4px}
+
+/* Quick action buttons row */
+.q-actions{display:flex;gap:6px;margin-top:8px}
+.q-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--gray-faint);border:none;
+  color:var(--white);font-size:14px;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.q-btn:hover{transform:scale(1.1)}
+.q-btn.email{background:var(--green-dim);color:var(--green)}
+.q-btn.call{background:var(--cyan-dim);color:var(--cyan)}
+.q-btn.schedule{background:var(--purple-dim);color:var(--purple)}
+.q-btn.edit{background:var(--amber-dim);color:var(--amber)}
+
+/* Email Panel */
+.tpl-pills{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;flex-wrap:nowrap}
+.tpl-pill{
+  padding:8px 14px;border-radius:20px;
+  background:var(--gray-faint);color:var(--gray-light);
+  font-size:12px;font-weight:600;
+  cursor:pointer;border:none;transition:all .2s;
+  white-space:nowrap;
+}
+.tpl-pill.on{background:var(--green);color:var(--black)}
+.tpl-pill.pizza{border:1px solid #F97316}
+.tpl-pill.pizza.on{background:#F97316}
+.tpl-pill.coffee{border:1px solid #8B5CF6}
+.tpl-pill.coffee.on{background:#8B5CF6}
+.tpl-pill.bbq{border:1px solid #EF4444}
+.tpl-pill.bbq.on{background:#EF4444}
+.tpl-pill.hotel{border:1px solid #06B6D4}
+.tpl-pill.hotel.on{background:#06B6D4}
+.tpl-pill.followup{border:1px solid #F59E0B}
+.tpl-pill.followup.on{background:#F59E0B}
+
+.email-preview{
+  background:var(--black);
+  border:1px solid var(--gray-faint);
+  border-radius:12px;
+  padding:16px;
+  margin:12px;
+  font-size:13px;
+  line-height:1.5;
+}
+.email-to{color:var(--cyan);font-weight:600;margin-bottom:8px}
+.email-subj{color:var(--amber);font-weight:600;margin-bottom:12px;font-size:14px}
+.email-body{color:var(--white);white-space:pre-wrap}
+
+.prospect-select{
+  width:100%;
+  padding:12px;
+  background:var(--gray-mid);
+  border:1px solid var(--gray-faint);
+  border-radius:8px;
+  color:var(--white);
+  font-size:14px;
+  margin:0 12px;
+  width:calc(100% - 24px);
+}
+.prospect-select option{background:var(--gray-dark)}
+
+/* Batch email list */
+.batch-list{padding:0 12px;max-height:200px;overflow-y:auto}
+.batch-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;
+  background:var(--gray-mid);
+  border-radius:8px;
+  margin-bottom:6px;
+}
+.batch-item input[type="checkbox"]{
+  width:18px;height:18px;
+  accent-color:var(--green);
+}
+.batch-item-name{flex:1;font-size:13px}
+.batch-item-status{font-size:10px;color:var(--gray-light)}
+
+/* Email Panel */
+.tpl-row{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;flex-wrap:nowrap}
+.tpl-pill{
+  padding:8px 14px;border-radius:16px;
+  background:var(--gray-faint);color:var(--gray-light);
+  font-size:12px;font-weight:600;
+  cursor:pointer;border:2px solid transparent;
+  transition:all .2s;white-space:nowrap;
+}
+.tpl-pill.on{border-color:var(--amber);color:var(--black);background:var(--amber);font-weight:700}
+
+.email-preview{
+  background:var(--black);border-radius:12px;
+  padding:14px;margin:12px;
+  font-size:13px;line-height:1.5;
+  max-height:280px;overflow-y:auto;
+  white-space:pre-wrap;
+}
+.email-to{color:var(--cyan);font-weight:600;margin-bottom:6px}
+.email-subj{color:var(--amber);font-weight:600;margin-bottom:10px}
+
+.batch-list{max-height:200px;overflow-y:auto;padding:0 12px}
+.batch-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;background:var(--gray-mid);
+  border-radius:8px;margin-bottom:6px;
+}
+.batch-item input[type="checkbox"]{
+  width:20px;height:20px;accent-color:var(--amber);
+}
+.batch-item-info{flex:1}
+.batch-item-name{font-weight:600;font-size:14px}
+.batch-item-email{font-size:11px;color:var(--gray-light)}
+
+.suggest-box{
+  background:var(--purple-dim);border:1px solid var(--purple);
+  border-radius:8px;padding:10px 12px;margin:12px;
+  font-size:12px;
+}
+.suggest-title{color:var(--purple);font-weight:700;margin-bottom:4px}
+.suggest-text{color:var(--gray-light)}
+
+/* TOAST */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:var(--black);padding:12px 24px;border-radius:8px;font-weight:600;opacity:0;transition:all .3s;z-index:300;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal.open{opacity:1;pointer-events:auto}
+.modal-box{background:var(--gray-dark);border-radius:16px;width:90%;max-width:360px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--gray-faint)}
+.modal-title{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--amber)}
+.modal-body{flex:1;overflow-y:auto;padding:16px}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--gray-faint);border:none;color:var(--white);font-size:16px;cursor:pointer}
+
+/* Form inputs */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:11px;color:var(--gray-light);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.form-input{width:100%;padding:10px 12px;background:var(--gray-mid);border:1px solid var(--gray-faint);border-radius:8px;color:var(--white);font-size:14px}
+.form-input:focus{outline:none;border-color:var(--amber)}
+.form-select{width:100%;padding:10px 12px;background:var(--gray-mid);border:1px solid var(--gray-faint);border-radius:8px;color:var(--white);font-size:14px}
+
+/* Screensaver ambient */
+@keyframes ambient{0%,100%{filter:brightness(1)}50%{filter:brightness(1.05)}}
+body.screensaver .ring{animation:ambient 8s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="st"><div class="st-v" id="sW">W1</div><div class="st-l">Week</div></div>
+  <div class="st"><div class="st-v q" id="sQ">0</div><div class="st-l">Quests</div></div>
+  <div class="st"><div class="st-v" id="sT">0</div><div class="st-l">Today</div></div>
+  <div class="st"><div class="st-v" id="sV">0/3</div><div class="st-l">Visits</div></div>
+  <div class="st"><div class="st-v" id="sB">0</div><div class="st-l">Barrels</div></div>
+</div>
+
+<!-- ORBITAL -->
+<div class="orb-wrap" id="orbWrap">
+  <div class="orb">
+    <div class="ring idle" id="ring"></div>
+    
+    <!-- Badges -->
+    <div class="badge top empty" id="bdgT" onclick="openPanel('schedule')">
+      <div class="bdg-lbl">SOONEST</div>
+      <div class="bdg-time">--:--</div>
+      <div class="bdg-name">No events</div>
+    </div>
+    <div class="badge bot empty" id="bdgB" onclick="openPanel('schedule')">
+      <div class="bdg-lbl">FURTHEST</div>
+      <div class="bdg-time">--</div>
+      <div class="bdg-name"></div>
+    </div>
+    
+    <!-- Scrollers INSIDE -->
+    <div class="mons" id="mons"></div>
+    <div class="tms" id="tms"></div>
+    
+    <!-- Center -->
+    <div class="ctr" id="ctr">
+      <div class="clk" id="clk">00:00</div>
+      <div class="day" id="dayN">23</div>
+      <div class="day-nav">
+        <button class="day-btn" onclick="event.stopPropagation();navDay(-1)">◀</button>
+        <button class="day-btn" onclick="event.stopPropagation();navDay(1)">▶</button>
+      </div>
+      <div class="day-lbl" id="dayL">MONDAY</div>
+    </div>
+    
+    <!-- Hour Overlay -->
+    <div class="hr-ov" id="hrOv">
+      <button class="hr-close" onclick="closeHr()">✕</button>
+      <div class="hr-title" id="hrTitle">FEB 23</div>
+      <div class="hr-list" id="hrList"></div>
+    </div>
+    
+    <!-- Layer 1: Daily -->
+    <div class="btns" id="L1">
+      <button class="btn crm" id="bCRM" onclick="openPanel('crm')">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </button>
+      <button class="btn prd" onclick="openPanel('production')">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </button>
+      <button class="btn mis" onclick="openPanel('missions')">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </button>
+      <button class="btn eml" onclick="openPanel('email')">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </button>
+    </div>
+    
+    <!-- Layer 2: Inventory -->
+    <div class="btns hide" id="L2">
+      <button class="btn war" onclick="openPanel('wares')">
+        <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </button>
+      <button class="btn ben" onclick="openPanel('beans')">
+        <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      </button>
+      <button class="btn str" onclick="openPanel('streams')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+      </button>
+      <button class="btn flv" onclick="openPanel('flavors')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      </button>
+    </div>
+    
+    <!-- Layer dots -->
+    <div class="dots">
+      <div class="dot on" id="d1"></div>
+      <div class="dot" id="d2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+
+<!-- EVENT EDITOR MODAL -->
+<div class="evt-modal" id="evtModal">
+  <div class="evt-box">
+    <div class="evt-title" id="evtModalTitle">NEW EVENT</div>
+    <input type="hidden" id="evtId">
+    <input type="hidden" id="evtDate">
+    <input type="hidden" id="evtHour">
+    
+    <div class="evt-field">
+      <label class="evt-label">Title</label>
+      <input type="text" class="evt-input" id="evtTitleInput" placeholder="What's happening?">
+    </div>
+    
+    <div class="evt-field">
+      <label class="evt-label">Time</label>
+      <select class="evt-select" id="evtTime">
+        <option value="06:00">6:00 AM</option>
+        <option value="07:00">7:00 AM</option>
+        <option value="08:00">8:00 AM</option>
+        <option value="09:00">9:00 AM</option>
+        <option value="10:00">10:00 AM</option>
+        <option value="11:00">11:00 AM</option>
+        <option value="12:00">12:00 PM</option>
+        <option value="13:00">1:00 PM</option>
+        <option value="14:00">2:00 PM</option>
+        <option value="15:00">3:00 PM</option>
+        <option value="16:00">4:00 PM</option>
+        <option value="17:00">5:00 PM</option>
+        <option value="18:00">6:00 PM</option>
+        <option value="19:00">7:00 PM</option>
+        <option value="20:00">8:00 PM</option>
+        <option value="21:00">9:00 PM</option>
+      </select>
+    </div>
+    
+    <div class="evt-field">
+      <label class="evt-label">Type</label>
+      <div class="evt-types">
+        <button class="evt-type work on" onclick="setEvtType('work')">Work</button>
+        <button class="evt-type personal" onclick="setEvtType('sample')">Sample</button>
+        <button class="evt-type production" onclick="setEvtType('production')">Production</button>
+      </div>
+    </div>
+    
+    <div class="evt-field">
+      <label class="evt-label">Notes</label>
+      <input type="text" class="evt-input" id="evtNotes" placeholder="Optional notes...">
+    </div>
+    
+    <div class="evt-field">
+      <label class="evt-label">Link to Prospect</label>
+      <select class="evt-select" id="evtProspect">
+        <option value="">— None —</option>
+      </select>
+    </div>
+    
+    <div class="evt-btns">
+      <button class="evt-btn cancel" onclick="closeEvtModal()">Cancel</button>
+      <button class="evt-btn save" onclick="saveEvt()">Save</button>
+    </div>
+    <button class="evt-btn delete" id="evtDelBtn" onclick="deleteEvt()" style="display:none">Delete Event</button>
+  </div>
+</div>
+
+<!-- SCHEDULE PANEL -->
+<div class="panel" id="panel-schedule">
+  <div class="panel-hdr">
+    <span class="panel-title" style="color:var(--amber)">📅 SCHEDULE</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="scheduleBody"></div>
+  <div style="padding:12px;border-top:1px solid var(--gray-faint)">
+    <button class="p-btn primary" style="width:100%" onclick="addDemo()">+ Add Demo Events</button>
+  </div>
+</div>
+
+<!-- CRM PANEL -->
+<div class="panel" id="panel-crm">
+  <div class="panel-hdr">
+    <span class="panel-title" style="color:var(--cyan)">👥 CRM</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="stats-bar">
+    <div class="st"><div class="st-v" id="crmTotal">0</div><div class="st-l">Total</div></div>
+    <div class="st"><div class="st-v" id="crmSamples">0</div><div class="st-l">Samples</div></div>
+    <div class="st"><div class="st-v" id="crmClosed">0</div><div class="st-l">Closed</div></div>
+    <div class="st"><div class="st-v" id="crmOverdue">0</div><div class="st-l">Overdue</div></div>
+  </div>
+  <div class="filters" id="crmFilters"></div>
+  <div class="panel-body" id="crmBody"></div>
+  <div style="padding:12px;border-top:1px solid var(--gray-faint);display:flex;gap:8px">
+    <button class="p-btn secondary" style="flex:1" onclick="loadProspects()">Load 21</button>
+    <button class="p-btn primary" style="flex:1" onclick="addProspect()">+ Add</button>
+  </div>
+</div>
+
+<!-- PRODUCTION PANEL -->
+<div class="panel" id="panel-production">
+  <div class="panel-hdr">
+    <span class="panel-title" style="color:var(--red)">🏭 PRODUCTION</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="stats-bar">
+    <div class="st"><div class="st-v">40</div><div class="st-l">Target</div></div>
+    <div class="st"><div class="st-v" id="prodMade">0</div><div class="st-l">Made</div></div>
+    <div class="st"><div class="st-v" id="prodLeft">40</div><div class="st-l">Left</div></div>
+  </div>
+  <div class="panel-body" id="prodBody"></div>
+  <div style="padding:12px;border-top:1px solid var(--gray-faint)">
+    <button class="p-btn primary" style="width:100%" onclick="scheduleProduction()">📅 Schedule 2-6pm Block</button>
+  </div>
+</div>
+
+<!-- MISSIONS PANEL -->
+<div class="panel" id="panel-missions">
+  <div class="panel-hdr">
+    <span class="panel-title" style="color:var(--purple)">🎯 MISSIONS</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:20px;padding:12px;background:var(--black)">
+    <button class="day-btn" onclick="changeWeek(-1)" style="width:36px;height:36px">◀</button>
+    <div style="text-align:center">
+      <div style="font-family:Oswald;font-size:28px;font-weight:700;color:var(--amber);text-shadow:0 0 15px var(--amber-glow)">WEEK <span id="missWeek">1</span></div>
+      <div style="font-size:10px;color:var(--gray-light)" id="missProgress">0/7 complete</div>
+    </div>
+    <button class="day-btn" onclick="changeWeek(1)" style="width:36px;height:36px">▶</button>
+  </div>
+  <div style="height:6px;background:var(--gray-faint);margin:0 16px 12px">
+    <div id="missBar" style="height:100%;background:linear-gradient(90deg,var(--amber),var(--green));width:0%;transition:width .3s;border-radius:3px"></div>
+  </div>
+  <div class="panel-body" id="missBody"></div>
+</div>
+
+<!-- EMAIL PANEL -->
+<div class="panel" id="panel-email">
+  <div class="panel-hdr">
+    <span class="panel-title" style="color:var(--green)">✉️ EMAIL</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="stats-bar">
+    <div class="st"><div class="st-v" id="emlTotal">0</div><div class="st-l">With Email</div></div>
+    <div class="st"><div class="st-v" id="emlSelected">0</div><div class="st-l">Selected</div></div>
+    <div class="st"><div class="st-v" id="emlSent">0</div><div class="st-l">Sent Today</div></div>
+  </div>
+  <div class="tpl-row" id="tplRow"></div>
+  <div id="suggestBox"></div>
+  <div class="email-preview" id="emailPreview">Select a template to preview...</div>
+  <div class="batch-list" id="batchList"></div>
+  <div style="padding:12px;border-top:1px solid var(--gray-faint);display:flex;gap:8px">
+    <button class="p-btn secondary" style="flex:1" onclick="selectAllBatch()">Select All</button>
+    <button class="p-btn primary" style="flex:1" onclick="sendBatch()">📧 Send Selected</button>
+  </div>
+</div>
+
+<!-- WARES PANEL -->
+<div class="panel" id="panel-wares">
+  <div class="panel-hdr">
+    <span class="panel-title" style="color:var(--teal)">📦 WARES</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="stats-bar">
+    <div class="st"><div class="st-v" id="waresTotal">$0</div><div class="st-l">Total Value</div></div>
+    <div class="st"><div class="st-v" id="waresSold">$0</div><div class="st-l">Sold</div></div>
+    <div class="st"><div class="st-v" id="waresRemain">$0</div><div class="st-l">Remaining</div></div>
+  </div>
+  <div class="panel-body" id="waresBody"></div>
+</div>
+
+<!-- BEANS PANEL -->
+<div class="panel" id="panel-beans">
+  <div class="panel-hdr">
+    <span class="panel-title" style="color:var(--orange)">☕ BEANS</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="stats-bar">
+    <div class="st"><div class="st-v" id="beansSubs">0</div><div class="st-l">Subscribers</div></div>
+    <div class="st"><div class="st-v" id="beansMRR">$0</div><div class="st-l">MRR</div></div>
+    <div class="st"><div class="st-v" id="beansGoal">30</div><div class="st-l">Goal</div></div>
+  </div>
+  <div class="panel-body" id="beansBody"></div>
+  <div style="padding:12px;border-top:1px solid var(--gray-faint)">
+    <a href="https://dripshipper.com" target="_blank" class="p-btn primary" style="display:block;text-align:center;text-decoration:none">Open DripShipper →</a>
+  </div>
+</div>
+
+<!-- STREAMS PANEL -->
+<div class="panel" id="panel-streams">
+  <div class="panel-hdr">
+    <span class="panel-title" style="color:var(--pink)">📊 STREAMS</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="streamsBody"></div>
+</div>
+
+<!-- FLAVORS PANEL -->
+<div class="panel" id="panel-flavors">
+  <div class="panel-hdr">
+    <span class="panel-title" style="color:var(--lime)">🍦 FLAVORS</span>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="flavorsBody"></div>
+</div>
+
+<!-- PROSPECT MODAL -->
+<div class="modal" id="prospectModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-title" id="modalTitle">Add Prospect</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group">
+        <label class="form-label">Business Name *</label>
+        <input type="text" class="form-input" id="fBiz" placeholder="Pizzeria Lui">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contact Name</label>
+        <input type="text" class="form-input" id="fCon" placeholder="Zach">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="fEmail" placeholder="zach@pizzerialui.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input type="tel" class="form-input" id="fPhone" placeholder="303-555-1234">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="fType">
+          <option value="pizza">🍕 Pizza</option>
+          <option value="coffee">☕ Coffee</option>
+          <option value="bbq">🍖 BBQ</option>
+          <option value="hotel">🏨 Hotel</option>
+          <option value="convenience">🏪 Convenience</option>
+          <option value="restaurant">🍽️ Restaurant</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="fStatus">
+          <option value="lead">Lead</option>
+          <option value="contacted">Contacted</option>
+          <option value="sample">Sample</option>
+          <option value="negotiating">Negotiating</option>
+          <option value="closed">Closed</option>
+          <option value="dead">Dead</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <input type="text" class="form-input" id="fNotes" placeholder="4.8★ on Google, mentioned by customer">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="p-btn secondary" style="flex:1" onclick="closeModal()">Cancel</button>
+        <button class="p-btn primary" style="flex:1" onclick="saveProspect()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================
+// CONSTANTS
+// ============================================
+const MO=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+const DA=["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
+
+const PROSPECTS=[
+  {biz:'Pizzeria Lui',con:'Zach',email:'zparini@gmail.com',phone:'303-922-3202',type:'pizza'},
+  {biz:'Woodys Wood-Fired',con:'Jon',email:'contact@woodysgolden.com',phone:'303-277-0443',type:'pizza'},
+  {biz:'Kaos Pizzeria',con:'Patrick',email:'hello@kaospizzeria.com',phone:'303-733-5267',type:'pizza'},
+  {biz:'Walters 303',con:'Mike',email:'feedback@walterspizzeria.com',phone:'303-864-9000',type:'pizza'},
+  {biz:'Ignazios',con:'Nancy',email:'ignazioskitchenco@gmail.com',phone:'720-912-2337',type:'pizza'},
+  {biz:'Abruscis',con:'Jeff',email:'info@fireandvineco.com',phone:'303-232-2424',type:'pizza'},
+  {biz:'Pizzeria Leopold',con:'Chris',email:'info@pizzerialeopold.com',phone:'303-248-7208',type:'pizza'},
+  {biz:'Nicolos',con:'Nicolo',email:'nicolos.lkwdco@gmail.com',phone:'303-969-9000',type:'pizza'},
+  {biz:'Bonos',con:'Tyler',email:'greatfood@bpspizza.com',phone:'303-278-1068',type:'pizza'},
+  {biz:'Moes BBQ',con:'Mike',email:'mikeshelly@moesoriginalbbq.com',phone:'303-984-7427',type:'bbq'},
+  {biz:'Moes Catering',con:'',email:'greaterdenvercatering@moesoriginalbbq.com',phone:'720-593-2278',type:'bbq'},
+  {biz:'Brockmeyers',con:'Brock',email:'brock@brockmeyers.com',phone:'303-935-8935',type:'coffee'},
+  {biz:'Front Porch',con:'Kara',email:'info@frontporchcoffeeshop.com',phone:'303-872-9291',type:'coffee'},
+  {biz:'Windy Saddle',con:'Brett',email:'info@windysaddle.com',phone:'303-279-1905',type:'coffee'},
+  {biz:'Mannie and Bos',con:'Mike',email:'',phone:'303-277-1793',type:'pizza'},
+  {biz:'Lil Riccis',con:'',email:'',phone:'303-215-1618',type:'pizza'},
+  {biz:'Pizza Stone',con:'Alexis',email:'',phone:'720-328-9956',type:'pizza'},
+  {biz:'Carls Pizza',con:'John',email:'',phone:'303-477-1694',type:'pizza'},
+  {biz:'Village Roaster',con:'Eric',email:'',phone:'303-238-8718',type:'coffee'},
+  {biz:'GQue BBQ',con:'Jason',email:'',phone:'720-524-3660',type:'bbq'},
+  {biz:'Hello Coffee',con:'Michelle',email:'',phone:'720-728-5199',type:'coffee'}
+];
+
+// ============================================
+// STATE
+// ============================================
+const STORAGE='scV11';
+let S={week:1,events:[],prospects:[],production:{},visits:0};
+let vDate=new Date();
+let layer=1;
+
+function uid(){return 'id_'+Math.random().toString(36).substr(2,9)}
+function save(){localStorage.setItem(STORAGE,JSON.stringify(S))}
+function load(){try{const d=JSON.parse(localStorage.getItem(STORAGE));if(d)S=Object.assign(S,d)}catch(e){}}
+
+// ============================================
+// SWIPE GESTURES
+// ============================================
+let touchX=0;
+document.getElementById('orbWrap').addEventListener('touchstart',e=>{touchX=e.touches[0].clientX},{passive:true});
+document.getElementById('orbWrap').addEventListener('touchend',e=>{
+  const diff=e.changedTouches[0].clientX-touchX;
+  if(Math.abs(diff)>50){
+    if(diff<0&&layer===1)switchLayer(2);
+    else if(diff>0&&layer===2)switchLayer(1);
+  }
+});
+
+function switchLayer(n){
+  layer=n;
+  document.getElementById('L1').classList.toggle('hide',n!==1);
+  document.getElementById('L2').classList.toggle('hide',n!==2);
+  document.getElementById('d1').classList.toggle('on',n===1);
+  document.getElementById('d2').classList.toggle('on',n===2);
+}
+
+// ============================================
+// HOUR OVERLAY - Tap center
+// ============================================
+document.getElementById('ctr').onclick=e=>{
+  if(e.target.classList.contains('day-btn'))return;
+  openHr();
+};
+
+function openHr(){
+  const viewStr=vDate.toISOString().split('T')[0];
+  document.getElementById('hrTitle').textContent=MO[vDate.getMonth()]+' '+vDate.getDate();
+  
+  // Build event map for this day
+  const dayEvts=S.events.filter(ev=>ev.date===viewStr);
+  const evtMap={};
+  dayEvts.forEach(ev=>{evtMap[parseInt(ev.time.split(':')[0])]=ev});
+  
+  let h='';
+  for(let i=6;i<=21;i++){
+    const lbl=i<12?i+':00a':i===12?'12:00p':(i-12)+':00p';
+    const evt=evtMap[i];
+    if(evt){
+      const cls=evt.type==='production'?'prod':evt.type==='sample'?'personal':'work';
+      h+=`<div class="hr-slot ${cls}" onclick="hrTap(${i},true)"><span class="hr-tm">${lbl}</span><span class="hr-evt">${evt.title}</span></div>`;
+    }else{
+      h+=`<div class="hr-slot" onclick="hrTap(${i},false)"><span class="hr-tm">${lbl}</span><span class="hr-empty">+ tap to add</span></div>`;
+    }
+  }
+  document.getElementById('hrList').innerHTML=h;
+  document.getElementById('hrOv').classList.add('open');
+}
+
+function closeHr(){document.getElementById('hrOv').classList.remove('open')}
+
+// ============================================
+// EVENT EDITOR
+// ============================================
+let editingEvtId=null;
+let editingEvtType='work';
+
+function hrTap(hour,hasEvent){
+  closeHr();
+  const viewStr=vDate.toISOString().split('T')[0];
+  
+  if(hasEvent){
+    // Find and edit existing event
+    const evt=S.events.find(e=>e.date===viewStr&&parseInt(e.time.split(':')[0])===hour);
+    if(evt)openEvtEditor(evt);
+  }else{
+    // Create new event
+    openEvtEditor(null,viewStr,hour);
+  }
+}
+
+function openEvtEditor(evt,date,hour){
+  editingEvtId=evt?evt.id:null;
+  editingEvtType=evt?evt.type:'work';
+  
+  // Set title
+  document.getElementById('evtModalTitle').textContent=evt?'EDIT EVENT':'NEW EVENT';
+  
+  // Fill fields
+  document.getElementById('evtId').value=evt?evt.id:'';
+  document.getElementById('evtDate').value=evt?evt.date:date;
+  document.getElementById('evtHour').value=evt?parseInt(evt.time.split(':')[0]):hour;
+  document.getElementById('evtTitleInput').value=evt?evt.title:'';
+  document.getElementById('evtTime').value=evt?evt.time:(hour<10?'0':'')+hour+':00';
+  document.getElementById('evtNotes').value=evt&&evt.notes?evt.notes:'';
+  
+  // Set type buttons
+  document.querySelectorAll('.evt-type').forEach(b=>b.classList.remove('on'));
+  const typeBtn=document.querySelector(`.evt-type.${editingEvtType}`)||document.querySelector('.evt-type.work');
+  if(typeBtn)typeBtn.classList.add('on');
+  
+  // Fill prospect dropdown
+  let pOpts='<option value="">— None —</option>';
+  S.prospects.forEach(p=>{
+    const sel=evt&&evt.prospectId===p.id?'selected':'';
+    pOpts+=`<option value="${p.id}" ${sel}>${p.biz}</option>`;
+  });
+  document.getElementById('evtProspect').innerHTML=pOpts;
+  
+  // Show/hide delete button
+  document.getElementById('evtDelBtn').style.display=evt?'block':'none';
+  
+  // Open modal
+  document.getElementById('evtModal').classList.add('open');
+  
+  // Focus title
+  setTimeout(()=>document.getElementById('evtTitleInput').focus(),100);
+}
+
+function closeEvtModal(){
+  document.getElementById('evtModal').classList.remove('open');
+  editingEvtId=null;
+}
+
+function setEvtType(type){
+  editingEvtType=type;
+  document.querySelectorAll('.evt-type').forEach(b=>b.classList.remove('on'));
+  const btn=document.querySelector(`.evt-type.${type==='sample'?'personal':type}`);
+  if(btn)btn.classList.add('on');
+}
+
+function saveEvt(){
+  const title=document.getElementById('evtTitleInput').value.trim()||'Event';
+  const date=document.getElementById('evtDate').value;
+  const time=document.getElementById('evtTime').value;
+  const notes=document.getElementById('evtNotes').value.trim();
+  const prospectId=document.getElementById('evtProspect').value;
+  
+  if(editingEvtId){
+    // Update existing
+    const evt=S.events.find(e=>e.id===editingEvtId);
+    if(evt){
+      evt.title=title;
+      evt.time=time;
+      evt.type=editingEvtType;
+      evt.notes=notes;
+      evt.prospectId=prospectId;
+    }
+    toast('Event updated');
+  }else{
+    // Create new
+    S.events.push({
+      id:uid(),
+      date:date,
+      time:time,
+      type:editingEvtType,
+      title:title,
+      notes:notes,
+      prospectId:prospectId
+    });
+    toast('Event added');
+  }
+  
+  save();
+  updDisplay();
+  closeEvtModal();
+}
+
+function deleteEvt(){
+  if(editingEvtId){
+    S.events=S.events.filter(e=>e.id!==editingEvtId);
+    save();
+    updDisplay();
+    toast('Event deleted');
+  }
+  closeEvtModal();
+}
+
+// ============================================
+// TIME SLOT TAPS (on scroller)
+// ============================================
+function tmTap(hour,hasEvent){
+  // Open event editor whether event exists or not
+  hrTap(hour,hasEvent);
+}
+
+// ============================================
+// CLOCK & DISPLAY
+// ============================================
+function updClock(){
+  const n=new Date();
+  let h=n.getHours();
+  const m=n.getMinutes();
+  const ap=h>=12?'p':'a';
+  h=h%12||12;
+  document.getElementById('clk').textContent=h+':'+(m<10?'0':'')+m+ap;
+}
+
+function updDisplay(){
+  document.getElementById('dayN').textContent=vDate.getDate();
+  document.getElementById('dayL').textContent=DA[vDate.getDay()];
+  renderMons();
+  renderTms();
+  updOrbital();
+  updStats();
+}
+
+function updStats(){
+  document.getElementById('sW').textContent='W'+S.week;
+  document.getElementById('sQ').textContent=S.prospects.filter(p=>p.quest).length;
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('sT').textContent=S.events.filter(e=>e.date===today).length;
+  document.getElementById('sV').textContent=S.visits+'/3';
+  let b=0;for(let k in S.production)b+=S.production[k]||0;
+  document.getElementById('sB').textContent=b;
+}
+
+function updOrbital(){
+  const ring=document.getElementById('ring');
+  const dayEl=document.getElementById('dayN');
+  const now=new Date();
+  
+  // Find soonest future event
+  const future=S.events.filter(e=>{
+    const ed=new Date(e.date+'T'+e.time);
+    return ed>=now;
+  }).sort((a,b)=>new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
+  
+  const soonest=future[0];
+  const furthest=future[future.length-1];
+  
+  // Update badges
+  const sB=document.getElementById('bdgT');
+  const fB=document.getElementById('bdgB');
+  
+  if(soonest){
+    sB.classList.remove('empty');
+    sB.querySelector('.bdg-time').textContent=fmtTime(soonest.time);
+    sB.querySelector('.bdg-name').textContent=soonest.title;
+  }else{
+    sB.classList.add('empty');
+    sB.querySelector('.bdg-time').textContent='--:--';
+    sB.querySelector('.bdg-name').textContent='No events';
+  }
+  
+  if(furthest&&furthest!==soonest){
+    fB.classList.remove('empty');
+    const fd=new Date(furthest.date);
+    fB.querySelector('.bdg-time').textContent=MO[fd.getMonth()]+' '+fd.getDate();
+    fB.querySelector('.bdg-name').textContent=furthest.title;
+  }else{
+    fB.classList.add('empty');
+    fB.querySelector('.bdg-time').textContent='--';
+    fB.querySelector('.bdg-name').textContent='';
+  }
+  
+  // Ring & day color
+  ring.className='ring';
+  dayEl.className='day';
+  
+  if(!soonest){
+    ring.classList.add('idle');
+    return;
+  }
+  
+  const soonTime=new Date(soonest.date+'T'+soonest.time);
+  const diffMin=(soonTime-now)/60000;
+  const diffHrs=diffMin/60;
+  
+  if(diffMin<=15){
+    ring.classList.add('urgent');
+    dayEl.classList.add('urgent','breathing');
+  }else if(diffHrs<=2){
+    ring.classList.add('soon');
+    dayEl.classList.add('urgent','breathing');
+  }else if(soonest.date===vDate.toISOString().split('T')[0]){
+    ring.classList.add('normal');
+    dayEl.classList.add('today');
+  }else if(diffHrs<=24){
+    ring.classList.add('normal');
+    dayEl.classList.add('soon');
+  }else{
+    ring.classList.add('idle');
+    dayEl.classList.add('later');
+  }
+}
+
+function renderMons(){
+  const cur=vDate.getMonth();
+  let h='';
+  // Show all 12 months - make it scrollable
+  for(let i=0;i<12;i++){
+    const has=S.events.some(e=>new Date(e.date).getMonth()===i);
+    h+=`<div class="mon${i===cur?' on':''}${has?' has':''}" onclick="goMon(${i})">${MO[i]}</div>`;
+  }
+  const el=document.getElementById('mons');
+  el.innerHTML=h;
+  // Scroll to current month
+  setTimeout(()=>{
+    const onEl=el.querySelector('.on');
+    if(onEl)onEl.scrollIntoView({block:'center',behavior:'auto'});
+  },10);
+}
+
+function renderTms(){
+  const viewStr=vDate.toISOString().split('T')[0];
+  const dayEvts=S.events.filter(e=>e.date===viewStr);
+  const evtMap={};
+  dayEvts.forEach(e=>{evtMap[parseInt(e.time.split(':')[0])]=e.type||'work'});
+  
+  const now=new Date();
+  const nowHr=now.getHours();
+  const isToday=vDate.toDateString()===now.toDateString();
+  
+  let h='';
+  // Show hours 6am to 10pm - make it scrollable
+  for(let hr=6;hr<=22;hr++){
+    const lbl=hr<12?hr+'a':hr===12?'12p':(hr-12)+'p';
+    let cls='tm';
+    const isNow=hr===nowHr&&isToday;
+    const evType=evtMap[hr];
+    
+    if(isNow)cls+=' now';
+    if(evType){
+      if(evType==='production')cls+=' prod';
+      else if(evType==='sample'||evType==='personal')cls+=' personal';
+      else cls+=' work';
+    }
+    h+=`<div class="${cls}" onclick="tmTap(${hr},${!!evType})">${lbl}</div>`;
+  }
+  const el=document.getElementById('tms');
+  el.innerHTML=h;
+  // Scroll to current hour or 10am
+  setTimeout(()=>{
+    const target=isToday?nowHr:10;
+    const idx=Math.max(0,target-6);
+    const items=el.querySelectorAll('.tm');
+    if(items[idx])items[idx].scrollIntoView({block:'center',behavior:'auto'});
+  },10);
+}
+
+function fmtTime(t){
+  const [h,m]=t.split(':').map(Number);
+  const ap=h>=12?'p':'a';
+  const hr=h>12?h-12:h===0?12:h;
+  return hr+':'+(m<10?'0':'')+m+ap;
+}
+
+function navDay(d){vDate.setDate(vDate.getDate()+d);updDisplay()}
+function goMon(m){vDate.setMonth(m);vDate.setDate(1);updDisplay()}
+
+// ============================================
+// PANELS
+// ============================================
+function openPanel(name){
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('panel-'+name).classList.add('open');
+  if(name==='schedule')renderSchedule();
+  if(name==='crm')renderCRM();
+  if(name==='production')renderProd();
+  if(name==='email')renderEmail();
+  if(name==='missions')renderMissions();
+  if(name==='wares')renderWares();
+  if(name==='flavors')renderFlavors();
+  if(name==='beans')renderBeans();
+  if(name==='streams')renderStreams();
+}
+
+function closePanel(){
+  document.getElementById('overlay').classList.remove('open');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
+}
+
+function renderSchedule(){
+  const viewStr=vDate.toISOString().split('T')[0];
+  const evts=S.events.filter(e=>e.date===viewStr).sort((a,b)=>a.time.localeCompare(b.time));
+  
+  if(evts.length>0){
+    const h=evts.map(e=>{
+      const tc=e.type==='production'?'urgent':e.type==='sample'?'personal':'work';
+      return `<div class="p-card ${tc}">
+        <div class="p-card-top">
+          <div class="p-card-title">${e.title}</div>
+          <div class="p-card-badge ${tc}">${fmtTime(e.time)}</div>
+        </div>
+        <div class="p-card-meta">${e.notes||''}</div>
+        <div class="p-card-actions">
+          <button class="p-btn danger small" onclick="delEvt('${e.id}')">Delete</button>
+          <button class="p-btn success small" onclick="doneEvt('${e.id}')">Done ✓</button>
+        </div>
+      </div>`;
+    }).join('');
+    document.getElementById('scheduleBody').innerHTML=h;
+  }else{
+    document.getElementById('scheduleBody').innerHTML=`<div style="text-align:center;color:var(--gray-light);padding:40px">No events for ${MO[vDate.getMonth()]} ${vDate.getDate()}</div>`;
+  }
+}
+
+function addDemo(){
+  const ds=vDate.toISOString().split('T')[0];
+  S.events.push({id:uid(),date:ds,time:'10:00',type:'work',title:'Sample: Pizzeria Lui',notes:'Zach'});
+  S.events.push({id:uid(),date:ds,time:'14:00',type:'production',title:'Production 2-6pm',notes:'VB-60'});
+  S.events.push({id:uid(),date:ds,time:'16:00',type:'sample',title:'Call: Kaos',notes:'Patrick'});
+  save();updDisplay();renderSchedule();toast('Demo events added!');
+}
+
+function delEvt(id){S.events=S.events.filter(e=>e.id!==id);save();updDisplay();renderSchedule();toast('Deleted');}
+function doneEvt(id){S.events=S.events.filter(e=>e.id!==id);save();updDisplay();renderSchedule();toast('Done!');}
+
+let crmFilter='all';
+let crmType='all';
+
+function renderCRM(){
+  const now=new Date().toISOString().split('T')[0];
+  
+  // Stats
+  document.getElementById('crmTotal').textContent=S.prospects.length;
+  document.getElementById('crmSamples').textContent=S.prospects.filter(p=>p.status==='sample').length;
+  document.getElementById('crmClosed').textContent=S.prospects.filter(p=>p.status==='closed').length;
+  const overdueCount=S.prospects.filter(p=>p.followUp&&p.followUp<now&&p.status!=='closed'&&p.status!=='dead').length;
+  document.getElementById('crmOverdue').textContent=overdueCount;
+  
+  // Filters
+  const statuses=['all','lead','contacted','sample','negotiating','closed','overdue'];
+  const types=['all','pizza','coffee','bbq'];
+  let fh='';
+  statuses.forEach(s=>{
+    const cnt=s==='all'?S.prospects.length:
+              s==='overdue'?overdueCount:
+              S.prospects.filter(p=>p.status===s).length;
+    fh+=`<button class="fil${crmFilter===s?' on':''}${s!=='all'&&s!=='overdue'?' '+s:''}" onclick="setCRMFilter('${s}')">${s.charAt(0).toUpperCase()+s.slice(1)} (${cnt})</button>`;
+  });
+  fh+='<span style="width:1px;background:var(--gray-faint);margin:0 4px"></span>';
+  types.forEach(t=>{
+    const icon=t==='pizza'?'🍕':t==='coffee'?'☕':t==='bbq'?'🍖':'📋';
+    fh+=`<button class="fil${crmType===t?' on':''}" onclick="setCRMType('${t}')">${icon}</button>`;
+  });
+  document.getElementById('crmFilters').innerHTML=fh;
+  
+  // Filter prospects
+  let list=S.prospects;
+  if(crmFilter==='overdue'){
+    list=list.filter(p=>p.followUp&&p.followUp<now&&p.status!=='closed'&&p.status!=='dead');
+  }else if(crmFilter!=='all'){
+    list=list.filter(p=>p.status===crmFilter);
+  }
+  if(crmType!=='all'){
+    list=list.filter(p=>p.type===crmType);
+  }
+  
+  // Sort: quests first, then by status priority
+  const statusOrder={lead:0,contacted:1,sample:2,negotiating:3,closed:4,dead:5};
+  list.sort((a,b)=>{
+    if(a.quest&&!b.quest)return -1;
+    if(!a.quest&&b.quest)return 1;
+    return (statusOrder[a.status]||0)-(statusOrder[b.status]||0);
+  });
+  
+  const icons={pizza:'🍕',coffee:'☕',bbq:'🍖',hotel:'🏨',convenience:'🏪',restaurant:'🍽️'};
+  
+  const h=list.map(p=>{
+    const isOverdue=p.followUp&&p.followUp<now&&p.status!=='closed'&&p.status!=='dead';
+    const statusLbl=(p.status||'lead').charAt(0).toUpperCase()+(p.status||'lead').slice(1);
+    const questCls=p.quest?'quest':'';
+    const overdueCls=isOverdue?'overdue':'';
+    const statusCls='s-'+(p.status||'lead');
+    
+    return `<div class="p-card ${statusCls} ${questCls} ${overdueCls}">
+      <div class="p-card-top">
+        <div class="p-card-title">${p.quest?'<span class="quest-icon">⚡</span>':''}${icons[p.type]||''} ${p.biz}</div>
+        <div class="p-card-badge b-${p.status||'lead'}">${statusLbl}</div>
+      </div>
+      <div class="p-card-meta">
+        ${p.con?p.con:''}${p.con&&p.phone?' · ':''}${p.phone||''}
+        ${isOverdue?'<br><span style="color:var(--red)">⚠️ Follow-up overdue: '+p.followUp+'</span>':''}
+        ${p.lastContact?'<br>Last: '+p.lastContact:''}
+      </div>
+      <div class="q-actions">
+        ${p.email?`<button class="q-btn email" onclick="quickEmail('${p.id}')" title="Email">✉️</button>`:''}
+        ${p.phone?`<a href="tel:${p.phone}" class="q-btn call" title="Call">📞</a>`:''}
+        <button class="q-btn schedule" onclick="scheduleProspect('${p.id}')" title="Schedule">📅</button>
+        <button class="q-btn edit" onclick="editProspect('${p.id}')" title="Edit">✏️</button>
+        <button class="q-btn" onclick="toggleQuest('${p.id}')" title="Quest" style="${p.quest?'background:rgba(234,179,8,0.2);color:#EAB308':''}"}>⚡</button>
+        <button class="q-btn" onclick="advanceStatus('${p.id}')" title="Advance">→</button>
+      </div>
+    </div>`;
+  }).join('');
+  
+  document.getElementById('crmBody').innerHTML=h||'<div style="text-align:center;padding:40px;color:var(--gray-light)">No prospects match filter</div>';
+}
+
+function setCRMFilter(f){crmFilter=f;renderCRM()}
+function setCRMType(t){crmType=t;renderCRM()}
+
+function loadProspects(){
+  if(S.prospects.length>0&&!confirm('Add 21 master prospects?'))return;
+  PROSPECTS.forEach(p=>{
+    if(!S.prospects.find(x=>x.biz===p.biz)){
+      const np=Object.assign({},p);
+      np.id=uid();
+      np.status='lead';
+      np.history=[];
+      S.prospects.push(np);
+    }
+  });
+  save();renderCRM();updStats();toast('Loaded 21!');
+}
+
+function toggleQuest(id){
+  const p=S.prospects.find(x=>x.id===id);
+  if(p){
+    p.quest=!p.quest;
+    save();renderCRM();updStats();
+    toast(p.quest?'⚡ Quest ON':'Quest off');
+  }
+}
+
+function advanceStatus(id){
+  const p=S.prospects.find(x=>x.id===id);
+  if(!p)return;
+  const flow=['lead','contacted','sample','negotiating','closed'];
+  const idx=flow.indexOf(p.status||'lead');
+  if(idx<flow.length-1){
+    p.status=flow[idx+1];
+    p.lastContact=new Date().toISOString().split('T')[0];
+    // Auto set follow-up 3 days out
+    const fu=new Date();fu.setDate(fu.getDate()+3);
+    p.followUp=fu.toISOString().split('T')[0];
+    p.history=p.history||[];
+    p.history.push({date:p.lastContact,action:'Status → '+p.status});
+    save();renderCRM();updStats();
+    toast('→ '+p.status.charAt(0).toUpperCase()+p.status.slice(1));
+  }
+}
+
+function scheduleProspect(id){
+  const p=S.prospects.find(x=>x.id===id);
+  if(!p)return;
+  closePanel();
+  setTimeout(()=>{
+    const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+    const ds=tomorrow.toISOString().split('T')[0];
+    S.events.push({
+      id:uid(),
+      date:ds,
+      time:'10:00',
+      type:'sample',
+      title:'Sample: '+p.biz,
+      notes:p.con||'',
+      prospectId:p.id
+    });
+    // Update prospect
+    p.status=p.status==='lead'?'contacted':p.status;
+    p.followUp=ds;
+    save();updDisplay();
+    toast('📅 Scheduled for tomorrow');
+  },300);
+}
+
+function quickEmail(id){
+  const p=S.prospects.find(x=>x.id===id);
+  if(!p||!p.email)return;
+  
+  // Map prospect type to template
+  const typeToTpl={
+    'pizza':'pizza',
+    'coffee':'coffee',
+    'bbq':'bbq',
+    'hotel':'pizza', // use pizza template for now
+    'convenience':'pizza',
+    'other':'pizza'
+  };
+  
+  // Close CRM, open Email panel with this prospect and template selected
+  closePanel();
+  setTimeout(()=>{
+    // Set the template based on type
+    curTpl=typeToTpl[p.type]||'pizza';
+    // Open email panel
+    openPanel('email');
+    // Select this prospect in batch list
+    setTimeout(()=>{
+      // Find and check the prospect's checkbox
+      const checkbox=document.querySelector(`input[data-id="${p.id}"]`);
+      if(checkbox){
+        checkbox.checked=true;
+        updBatchCount();
+      }
+      renderEmail();
+    },100);
+  },150);
+  
+  toast('Template: '+TEMPLATES[curTpl].name);
+}
+
+function editProspect(id){
+  const p=S.prospects.find(x=>x.id===id);
+  if(!p)return;
+  
+  document.getElementById('modalTitle').textContent='Edit Prospect';
+  document.getElementById('editId').value=id;
+  document.getElementById('fBiz').value=p.biz||'';
+  document.getElementById('fCon').value=p.con||'';
+  document.getElementById('fEmail').value=p.email||'';
+  document.getElementById('fPhone').value=p.phone||'';
+  document.getElementById('fType').value=p.type||'pizza';
+  document.getElementById('fStatus').value=p.status||'lead';
+  document.getElementById('fNotes').value=p.notes||'';
+  
+  document.getElementById('prospectModal').classList.add('open');
+}
+
+function addProspect(){
+  document.getElementById('modalTitle').textContent='Add Prospect';
+  document.getElementById('editId').value='';
+  document.getElementById('fBiz').value='';
+  document.getElementById('fCon').value='';
+  document.getElementById('fEmail').value='';
+  document.getElementById('fPhone').value='';
+  document.getElementById('fType').value='pizza';
+  document.getElementById('fStatus').value='lead';
+  document.getElementById('fNotes').value='';
+  
+  document.getElementById('prospectModal').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('prospectModal').classList.remove('open');
+}
+
+function saveProspect(){
+  const biz=document.getElementById('fBiz').value.trim();
+  if(!biz){toast('Business name required');return}
+  
+  const id=document.getElementById('editId').value;
+  
+  if(id){
+    // Edit existing
+    const p=S.prospects.find(x=>x.id===id);
+    if(p){
+      p.biz=biz;
+      p.con=document.getElementById('fCon').value.trim();
+      p.email=document.getElementById('fEmail').value.trim();
+      p.phone=document.getElementById('fPhone').value.trim();
+      p.type=document.getElementById('fType').value;
+      p.status=document.getElementById('fStatus').value;
+      p.notes=document.getElementById('fNotes').value.trim();
+    }
+    toast('✓ Updated');
+  }else{
+    // Add new
+    S.prospects.push({
+      id:uid(),
+      biz:biz,
+      con:document.getElementById('fCon').value.trim(),
+      email:document.getElementById('fEmail').value.trim(),
+      phone:document.getElementById('fPhone').value.trim(),
+      type:document.getElementById('fType').value,
+      status:document.getElementById('fStatus').value,
+      notes:document.getElementById('fNotes').value.trim(),
+      history:[]
+    });
+    toast('✓ Added');
+  }
+  
+  save();closeModal();renderCRM();updStats();
+}
+
+// ============================================
+// EMAIL TEMPLATES
+// ============================================
+const TEMPLATES={
+  pizza:{
+    name:'🍕 Pizza',
+    subj:'Quick dessert question',
+    body:`Hey [NAME],
+
+I noticed [BIZ] doesn't have much dessert — most places don't because it's a hassle.
+
+I make Smith+Canon ice cream (5280 Top of Town winner). 5oz cups, zero labor. You charge $6-7, cost $2.81 = $4+ profit.
+
+Happy to drop samples. What day works?
+
+— Curt
+curt@smithcanon.com`,
+    suggest:'Butterbrickle, Salted Caramel, Foxy Brown pair great with pizza'
+  },
+  pizza_sample:{
+    name:'🍕 Pizza+Sample',
+    subj:'Samples ready for [BIZ]',
+    body:`Hey [NAME],
+
+Following up — I've got samples packed for [BIZ].
+
+Thinking Butterbrickle and Salted Caramel would crush it with your pizza.
+
+What day can I swing by? Takes 5 min.
+
+— Curt`,
+    suggest:'Bring 4 flavors: Butterbrickle, Salted Caramel, Foxy Brown, Chocolate'
+  },
+  coffee:{
+    name:'☕ Coffee',
+    subj:"Denver's best affogato partner",
+    body:`Hey [NAME],
+
+5280 named us Colorado's best affogato 3 years running.
+
+I'm partnering with coffee shops like [BIZ]. 5oz cups work perfect for espresso pours. $4-5 profit per serving.
+
+We also wholesale our own beans if interested (4 roasts).
+
+Samples this week?
+
+— Curt
+curt@smithcanon.com`,
+    suggest:'Black Coffee + Thai Iced Tea flavors = affogato gold'
+  },
+  coffee_sample:{
+    name:'☕ Coffee+Sample',
+    subj:'Affogato samples for [BIZ]',
+    body:`Hey [NAME],
+
+Got your affogato samples ready — Black Coffee and Thai Iced Tea flavors.
+
+Pour your espresso right over. Customers lose their minds.
+
+Quick drop-off this week?
+
+— Curt`,
+    suggest:'Demo the affogato pour if possible — it sells itself'
+  },
+  bbq:{
+    name:'🍖 BBQ',
+    subj:'Ice cream after BBQ',
+    body:`Hey [NAME],
+
+Ice cream after BBQ = perfect. Cuts the richness, gives people a reason to linger (and spend).
+
+5oz cups: $2.81 cost, you charge $6 = 83% margin. Zero labor.
+
+Worth a sample drop at [BIZ]?
+
+— Curt
+curt@smithcanon.com`,
+    suggest:'El Chupacabra (Mexican chocolate chili) pairs amazing with BBQ'
+  },
+  followup:{
+    name:'↩️ Follow-up',
+    subj:'Re: Ice cream samples',
+    body:`Hey [NAME],
+
+Following up on my note about ice cream samples for [BIZ].
+
+Still interested in a quick drop? No pressure — just closing the loop.
+
+— Curt`,
+    suggest:'If no response after 2 follow-ups, mark as Dead or try calling'
+  },
+  followup_hard:{
+    name:'↩️ Last Chance',
+    subj:'Last check on [BIZ]',
+    body:`Hey [NAME],
+
+Final ping on ice cream for [BIZ].
+
+If timing's not right, no worries at all. Just let me know either way?
+
+— Curt`,
+    suggest:'After this, wait 30 days or move on'
+  },
+  reorder:{
+    name:'🔄 Reorder',
+    subj:'Ready for more ice cream?',
+    body:`Hey [NAME],
+
+Hope the ice cream's flying off the shelves at [BIZ]!
+
+Ready for a reorder? Same flavors or want to try something new?
+
+— Curt`,
+    suggest:'Upsell: offer a new seasonal flavor or larger quantity discount'
+  }
+};
+
+let curTpl='pizza';
+let batchSelected=[];
+let sentToday=0;
+
+// ============================================
+// MISSIONS - 12 WEEKS
+// ============================================
+const MISSIONS={
+  1:[
+    {id:'w1m1',title:'Export 31K email list from Square',tag:'Email',urgent:true},
+    {id:'w1m2',title:'Send reactivation email (15% off)',tag:'Email',urgent:true},
+    {id:'w1m3',title:'Send 10 cold emails to pizza places',tag:'Wholesale',high:true},
+    {id:'w1m4',title:'List 3 wares on FB Marketplace',tag:'Wares',high:true},
+    {id:'w1m5',title:'Build 20 coffee shop prospects',tag:'Wholesale'},
+    {id:'w1m6',title:'Order coffee from DripShipper',tag:'Coffee'},
+    {id:'w1m7',title:'Make 40 barrels (production week)',tag:'Production'}
+  ],
+  2:[
+    {id:'w2m1',title:'Follow up pizza emails (Day 3)',tag:'Wholesale',urgent:true},
+    {id:'w2m2',title:'Send 10 more pizza cold emails',tag:'Wholesale',urgent:true},
+    {id:'w2m3',title:'Visit 5 coffee shops with samples',tag:'Wholesale',high:true},
+    {id:'w2m4',title:'List 5 more wares on FB',tag:'Wares'},
+    {id:'w2m5',title:'Send email #2 to Square list',tag:'Email'},
+    {id:'w2m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  3:[
+    {id:'w3m1',title:'Close first pizza account',tag:'Wholesale',urgent:true},
+    {id:'w3m2',title:'Visit 5 more coffee shops',tag:'Wholesale',urgent:true},
+    {id:'w3m3',title:'Send 10 emails to restaurants',tag:'Wholesale',high:true},
+    {id:'w3m4',title:'Rewrite Shopify bean descriptions',tag:'Coffee'},
+    {id:'w3m5',title:'Send email #3 (social proof)',tag:'Email'},
+    {id:'w3m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  4:[
+    {id:'w4m1',title:'Close first coffee shop account',tag:'Wholesale',urgent:true},
+    {id:'w4m2',title:'Deliver first wholesale order',tag:'Wholesale',urgent:true},
+    {id:'w4m3',title:'Send 10 emails to convenience',tag:'Wholesale',high:true},
+    {id:'w4m4',title:'Bundle coffee + wares Shopify',tag:'Coffee'},
+    {id:'w4m5',title:'Email #4: Win-back campaign',tag:'Email'},
+    {id:'w4m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  5:[
+    {id:'w5m1',title:'Hit 3 wholesale accounts total',tag:'Wholesale',urgent:true},
+    {id:'w5m2',title:'Expand to Zone B territory',tag:'Wholesale',high:true},
+    {id:'w5m3',title:'Launch coffee subscription',tag:'Coffee'},
+    {id:'w5m4',title:'Craigslist wares listings',tag:'Wares'},
+    {id:'w5m5',title:'Email #5 to engaged segment',tag:'Email'},
+    {id:'w5m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  6:[
+    {id:'w6m1',title:'Hit 5 total wholesale accounts',tag:'Wholesale',urgent:true},
+    {id:'w6m2',title:'First reorder from account',tag:'Wholesale',urgent:true},
+    {id:'w6m3',title:'Send 10 emails to hotels',tag:'Wholesale',high:true},
+    {id:'w6m4',title:'Wares flash sale weekend',tag:'Wares'},
+    {id:'w6m5',title:'Email #6: New flavor announce',tag:'Email'},
+    {id:'w6m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  7:[
+    {id:'w7m1',title:'Hit 7 wholesale accounts',tag:'Wholesale',urgent:true},
+    {id:'w7m2',title:'Second reorder secured',tag:'Wholesale',high:true},
+    {id:'w7m3',title:'Coffee subscription: 10 subs',tag:'Coffee'},
+    {id:'w7m4',title:'Clear 25% of wares inventory',tag:'Wares'},
+    {id:'w7m5',title:'Email #7: Behind the scenes',tag:'Email'},
+    {id:'w7m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  8:[
+    {id:'w8m1',title:'Hit 10 wholesale accounts',tag:'Wholesale',urgent:true},
+    {id:'w8m2',title:'Lincoln Zoo Bar pop-up prep',tag:'Catering',urgent:true},
+    {id:'w8m3',title:'Coffee subscription: 15 subs',tag:'Coffee'},
+    {id:'w8m4',title:'Clear 40% of wares inventory',tag:'Wares'},
+    {id:'w8m5',title:'Email #8: Event announcement',tag:'Email'},
+    {id:'w8m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  9:[
+    {id:'w9m1',title:'Lincoln Zoo Bar pop-up execute',tag:'Catering',urgent:true},
+    {id:'w9m2',title:'Hit 12 wholesale accounts',tag:'Wholesale',urgent:true},
+    {id:'w9m3',title:'Coffee subscription: 20 subs',tag:'Coffee'},
+    {id:'w9m4',title:'Clear 50% of wares inventory',tag:'Wares'},
+    {id:'w9m5',title:'Email #9: Pop-up recap',tag:'Email'},
+    {id:'w9m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  10:[
+    {id:'w10m1',title:'Hit 15 wholesale accounts',tag:'Wholesale',urgent:true},
+    {id:'w10m2',title:'Third reorder secured',tag:'Wholesale',high:true},
+    {id:'w10m3',title:'Coffee subscription: 25 subs',tag:'Coffee'},
+    {id:'w10m4',title:'Clear 65% of wares inventory',tag:'Wares'},
+    {id:'w10m5',title:'Email #10: Summer preview',tag:'Email'},
+    {id:'w10m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  11:[
+    {id:'w11m1',title:'Hit 18 wholesale accounts',tag:'Wholesale',urgent:true},
+    {id:'w11m2',title:'School account: APS portal active',tag:'Wholesale',high:true},
+    {id:'w11m3',title:'Coffee subscription: 28 subs',tag:'Coffee'},
+    {id:'w11m4',title:'Clear 80% of wares inventory',tag:'Wares'},
+    {id:'w11m5',title:'Email #11: Loyalty program',tag:'Email'},
+    {id:'w11m6',title:'Make 40 barrels',tag:'Production'}
+  ],
+  12:[
+    {id:'w12m1',title:'Hit 20+ wholesale accounts',tag:'Wholesale',urgent:true},
+    {id:'w12m2',title:'$5K/month wholesale revenue',tag:'Wholesale',urgent:true},
+    {id:'w12m3',title:'Coffee subscription: 30 subs',tag:'Coffee'},
+    {id:'w12m4',title:'Wares inventory liquidated',tag:'Wares'},
+    {id:'w12m5',title:'Email #12: 90-day celebration',tag:'Email'},
+    {id:'w12m6',title:'Review & plan next 90 days',tag:'Production'}
+  ]
+};
+
+function renderMissions(){
+  document.getElementById('missWeek').textContent=S.week;
+  const missions=MISSIONS[S.week]||[];
+  
+  // Calculate progress
+  S.missionsDone=S.missionsDone||{};
+  const done=missions.filter(m=>S.missionsDone[m.id]).length;
+  const pct=missions.length>0?Math.round((done/missions.length)*100):0;
+  document.getElementById('missProgress').textContent=`${done}/${missions.length} complete`;
+  document.getElementById('missBar').style.width=pct+'%';
+  
+  // Tag colors
+  const tagColors={
+    Email:'var(--cyan)',Wholesale:'var(--purple)',Wares:'var(--teal)',
+    Coffee:'var(--orange)',Production:'var(--red)',Catering:'var(--pink)'
+  };
+  
+  // Action mapping - what panel/action does each mission type trigger
+  const getAction=(m)=>{
+    const t=m.title.toLowerCase();
+    const tag=m.tag;
+    
+    // Email-related
+    if(t.includes('email')&&(t.includes('send')||t.includes('reactivation')))
+      return {label:'✉️ Email',panel:'email'};
+    if(t.includes('email'))
+      return {label:'✉️ Email',panel:'email'};
+    
+    // CRM - prospects, visits, accounts, follow up
+    if(t.includes('prospect')||t.includes('build'))
+      return {label:'👥 CRM',panel:'crm'};
+    if(t.includes('visit')||t.includes('close')||t.includes('account')||t.includes('reorder')||t.includes('follow up'))
+      return {label:'👥 CRM',panel:'crm'};
+    if(t.includes('deliver')||t.includes('territory')||t.includes('zone'))
+      return {label:'👥 CRM',panel:'crm'};
+    if(tag==='Wholesale')
+      return {label:'👥 CRM',panel:'crm'};
+    
+    // Wares
+    if(tag==='Wares'||t.includes('wares')||t.includes('inventory'))
+      return {label:'📦 Wares',panel:'wares'};
+    
+    // Coffee/Beans
+    if(tag==='Coffee'||t.includes('dripshipper')||t.includes('subscription')||t.includes('bean'))
+      return {label:'☕ Beans',panel:'beans'};
+    
+    // Production
+    if(tag==='Production'||t.includes('barrel')||t.includes('make 40'))
+      return {label:'🏭 Prod',panel:'production'};
+    
+    // Catering
+    if(tag==='Catering'||t.includes('pop-up')||t.includes('zoo bar'))
+      return {label:'🎪 Catering',panel:'streams'};
+    
+    // External tasks - just show relevant internal panel
+    if(t.includes('square'))
+      return {label:'✉️ Email',panel:'email'};
+    if(t.includes('shopify'))
+      return {label:'☕ Beans',panel:'beans'};
+    if(t.includes('fb marketplace')||t.includes('facebook')||t.includes('craigslist'))
+      return {label:'📦 Wares',panel:'wares'};
+    
+    return null;
+  };
+  
+  // Sort: undone first, urgent/high priority
+  const sorted=[...missions].sort((a,b)=>{
+    const aDone=S.missionsDone[a.id];
+    const bDone=S.missionsDone[b.id];
+    if(aDone&&!bDone)return 1;
+    if(!aDone&&bDone)return -1;
+    if(a.urgent&&!b.urgent)return -1;
+    if(!a.urgent&&b.urgent)return 1;
+    if(a.high&&!b.high)return -1;
+    if(!a.high&&b.high)return 1;
+    return 0;
+  });
+  
+  const h=sorted.map(m=>{
+    const isDone=S.missionsDone[m.id];
+    const urgentCls=m.urgent?'urgent':m.high?'work':'';
+    const doneCls=isDone?'opacity:.4;text-decoration:line-through':'';
+    const tagColor=tagColors[m.tag]||'var(--gray-light)';
+    const action=getAction(m);
+    
+    return `<div class="p-card ${urgentCls}" style="${doneCls}">
+      <div class="p-card-top">
+        <div class="p-card-title">${m.title}</div>
+        <div class="p-card-badge" style="background:${tagColor}20;color:${tagColor}">${m.tag}</div>
+      </div>
+      <div class="p-card-actions">
+        ${action&&!isDone?`<button class="p-btn small primary" onclick="missionAction('${action.panel}')">${action.label}</button>`:''}
+        ${!isDone?`<button class="p-btn small secondary" onclick="scheduleMission('${m.id}')">📅</button>`:''}
+        <button class="p-btn small ${isDone?'secondary':'success'}" onclick="toggleMission('${m.id}')">${isDone?'Undo':'✓'}</button>
+      </div>
+    </div>`;
+  }).join('');
+  
+  document.getElementById('missBody').innerHTML=h;
+}
+
+function changeWeek(d){
+  S.week=Math.max(1,Math.min(12,S.week+d));
+  save();renderMissions();updStats();
+}
+
+function toggleMission(id){
+  S.missionsDone=S.missionsDone||{};
+  S.missionsDone[id]=!S.missionsDone[id];
+  save();renderMissions();updStats();
+  toast(S.missionsDone[id]?'✓ Done!':'Undone');
+}
+
+function missionAction(panel){
+  closePanel();
+  setTimeout(()=>openPanel(panel),150);
+}
+
+function scheduleMission(id){
+  const m=Object.values(MISSIONS).flat().find(x=>x.id===id);
+  if(!m)return;
+  
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+  const ds=tomorrow.toISOString().split('T')[0];
+  
+  S.events.push({
+    id:uid(),
+    date:ds,
+    time:'09:00',
+    type:'work',
+    title:'Mission: '+m.title.substring(0,25)+'...',
+    notes:m.tag,
+    missionId:id
+  });
+  
+  save();updDisplay();renderMissions();
+  toast('📅 Scheduled for tomorrow');
+}
+
+// ============================================
+// WARES - $16K Inventory
+// ============================================
+const WARES=[
+  {id:'w1',name:'Black Mugs',qty:70,price:15,emoji:'☕'},
+  {id:'w2',name:'Espresso Cups',qty:500,price:8,emoji:'🥛'},
+  {id:'w3',name:'Premium Grinder',qty:40,price:85,emoji:'⚙️'},
+  {id:'w4',name:'Steel Grinder',qty:100,price:35,emoji:'🔧'},
+  {id:'w5',name:'Pour-Over Set',qty:500,price:25,emoji:'☕'},
+  {id:'w6',name:'Ceramic Dripper',qty:200,price:18,emoji:'🫖'},
+  {id:'w7',name:'Measure Spoons',qty:1000,price:6,emoji:'🥄'},
+  {id:'w8',name:'Vacuum Vessel',qty:500,price:22,emoji:'🫙'}
+];
+
+function renderWares(){
+  S.waresSold=S.waresSold||{};
+  
+  let totalVal=0,soldVal=0;
+  WARES.forEach(w=>{
+    const sold=S.waresSold[w.id]||0;
+    totalVal+=w.qty*w.price;
+    soldVal+=sold*w.price;
+  });
+  
+  document.getElementById('waresTotal').textContent='$'+totalVal.toLocaleString();
+  document.getElementById('waresSold').textContent='$'+soldVal.toLocaleString();
+  document.getElementById('waresRemain').textContent='$'+(totalVal-soldVal).toLocaleString();
+  
+  const h=WARES.map(w=>{
+    const sold=S.waresSold[w.id]||0;
+    const remain=w.qty-sold;
+    const pct=Math.round((sold/w.qty)*100);
+    const value=remain*w.price;
+    
+    return `<div class="p-card" style="border-left-color:var(--teal)">
+      <div class="p-card-top">
+        <div class="p-card-title">${w.emoji} ${w.name}</div>
+        <div class="p-card-badge" style="background:var(--teal-dim);color:var(--teal)">$${w.price}</div>
+      </div>
+      <div class="p-card-meta">
+        ${remain} remaining of ${w.qty} · $${value.toLocaleString()} value · ${pct}% sold
+      </div>
+      <div style="height:4px;background:var(--gray-faint);border-radius:2px;margin:8px 0">
+        <div style="height:100%;width:${pct}%;background:var(--teal);border-radius:2px"></div>
+      </div>
+      <div class="p-card-actions">
+        <button class="p-btn small danger" onclick="sellWare('${w.id}',-1)">-1</button>
+        <button class="p-btn small success" onclick="sellWare('${w.id}',1)">+1 Sold</button>
+        <button class="p-btn small secondary" onclick="sellWare('${w.id}',5)">+5</button>
+      </div>
+    </div>`;
+  }).join('');
+  
+  document.getElementById('waresBody').innerHTML=h;
+}
+
+function sellWare(id,n){
+  S.waresSold=S.waresSold||{};
+  const w=WARES.find(x=>x.id===id);
+  if(!w)return;
+  
+  S.waresSold[id]=(S.waresSold[id]||0)+n;
+  if(S.waresSold[id]<0)S.waresSold[id]=0;
+  if(S.waresSold[id]>w.qty)S.waresSold[id]=w.qty;
+  
+  save();renderWares();
+  toast(n>0?'💰 Sold!':'Adjusted');
+}
+
+// ============================================
+// FLAVORS - 16 Total
+// ============================================
+const FLAVORS=[
+  // Classics (8)
+  {name:'Vanilla',emoji:'🍦',cat:'Classic'},
+  {name:'Chocolate',emoji:'🍫',cat:'Classic'},
+  {name:'Strawberry',emoji:'🍓',cat:'Classic'},
+  {name:'Cookies & Cream',emoji:'🍪',cat:'Classic'},
+  {name:'Mint Chip',emoji:'🌿',cat:'Classic'},
+  {name:'Peanut Butter Cup',emoji:'🥜',cat:'Classic'},
+  {name:'Salted Caramel',emoji:'🧂',cat:'Classic'},
+  {name:'Butterbrickle',emoji:'🧈',cat:'Classic'},
+  // Signatures (5)
+  {name:'Foxy Brown',emoji:'🦊',cat:'Signature',desc:'Cinnamon cheesecake'},
+  {name:'Black Coffee',emoji:'☕',cat:'Signature',desc:'Affogato perfect'},
+  {name:'Thai Iced Tea',emoji:'🧋',cat:'Signature',desc:'Affogato perfect'},
+  {name:'Melted Brownie',emoji:'🟫',cat:'Signature'},
+  {name:'Lemons',emoji:'🍋',cat:'Signature'},
+  // Heat (3)
+  {name:'El Chupacabra',emoji:'🔥',cat:'Heat',desc:'Mexican chocolate + chili'},
+  {name:'Strawbañero',emoji:'🌶️',cat:'Heat',desc:'Strawberry + habanero'},
+  {name:'Honey Hotness',emoji:'🍯',cat:'Heat'}
+];
+
+function renderFlavors(){
+  const cats=['Classic','Signature','Heat'];
+  const catColors={Classic:'var(--cyan)',Signature:'var(--purple)',Heat:'var(--red)'};
+  
+  let h='';
+  cats.forEach(cat=>{
+    const flavs=FLAVORS.filter(f=>f.cat===cat);
+    h+=`<div style="font-family:Oswald;font-size:16px;color:${catColors[cat]};margin:16px 0 8px;letter-spacing:.1em">${cat.toUpperCase()} (${flavs.length})</div>`;
+    
+    h+=`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">`;
+    flavs.forEach(f=>{
+      h+=`<div style="background:var(--gray-mid);border-radius:8px;padding:12px;border-left:3px solid ${catColors[cat]}">
+        <div style="font-size:20px;margin-bottom:4px">${f.emoji}</div>
+        <div style="font-weight:600;font-size:14px">${f.name}</div>
+        ${f.desc?`<div style="font-size:11px;color:var(--gray-light)">${f.desc}</div>`:''}
+      </div>`;
+    });
+    h+=`</div>`;
+  });
+  
+  // Pairing guide
+  h+=`<div style="margin-top:20px;padding:14px;background:var(--purple-dim);border:1px solid var(--purple);border-radius:10px">
+    <div style="font-weight:700;color:var(--purple);margin-bottom:8px">🎯 Pairing Guide</div>
+    <div style="font-size:12px;color:var(--gray-light);line-height:1.5">
+      <b>Pizza:</b> Butterbrickle, Salted Caramel, Foxy Brown<br>
+      <b>Coffee/Affogato:</b> Black Coffee, Thai Iced Tea<br>
+      <b>BBQ:</b> El Chupacabra, Vanilla, Honey Hotness
+    </div>
+  </div>`;
+  
+  document.getElementById('flavorsBody').innerHTML=h;
+}
+
+// ============================================
+// BEANS - 4 SKUs via DripShipper
+// ============================================
+const BEANS=[
+  {id:'b1',name:'Nubia',emoji:'🌍',desc:'Smooth, chocolate notes, Ethiopian origin',price:18},
+  {id:'b2',name:'Axum',emoji:'☀️',desc:'Bright, fruity, light roast',price:18},
+  {id:'b3',name:'Truckstop',emoji:'🚚',desc:'Bold, classic diner coffee, dark roast',price:16},
+  {id:'b4',name:'Whiskey Barrel',emoji:'🥃',desc:'Oak-aged, smooth caramel finish',price:22}
+];
+
+function renderBeans(){
+  S.beans=S.beans||{subs:0};
+  
+  const subs=S.beans.subs||0;
+  const mrr=subs*18; // avg $18/sub
+  
+  document.getElementById('beansSubs').textContent=subs;
+  document.getElementById('beansMRR').textContent='$'+mrr;
+  
+  let h='';
+  
+  // Subscription tracker
+  h+=`<div class="p-card" style="border-left-color:var(--orange);margin-bottom:16px">
+    <div class="p-card-top">
+      <div class="p-card-title">📈 Subscription Goal</div>
+      <div class="p-card-badge" style="background:var(--orange-dim);color:var(--orange)">${subs}/30</div>
+    </div>
+    <div style="height:8px;background:var(--gray-faint);border-radius:4px;margin:10px 0">
+      <div style="height:100%;width:${Math.min(100,Math.round((subs/30)*100))}%;background:linear-gradient(90deg,var(--orange),var(--amber));border-radius:4px"></div>
+    </div>
+    <div class="p-card-actions">
+      <button class="p-btn small danger" onclick="adjSubs(-1)">-1</button>
+      <button class="p-btn small success" onclick="adjSubs(1)">+1 Sub</button>
+      <button class="p-btn small secondary" onclick="adjSubs(5)">+5</button>
+    </div>
+  </div>`;
+  
+  // SKUs
+  h+=`<div style="font-family:Oswald;font-size:14px;color:var(--orange);margin:12px 0 8px;letter-spacing:.1em">4 ROASTS</div>`;
+  
+  BEANS.forEach(b=>{
+    h+=`<div class="p-card" style="border-left-color:var(--orange)">
+      <div class="p-card-top">
+        <div class="p-card-title">${b.emoji} ${b.name}</div>
+        <div class="p-card-badge" style="background:var(--orange-dim);color:var(--orange)">$${b.price}</div>
+      </div>
+      <div class="p-card-meta">${b.desc}</div>
+    </div>`;
+  });
+  
+  document.getElementById('beansBody').innerHTML=h;
+}
+
+function adjSubs(n){
+  S.beans=S.beans||{subs:0};
+  S.beans.subs=(S.beans.subs||0)+n;
+  if(S.beans.subs<0)S.beans.subs=0;
+  save();renderBeans();
+  toast(n>0?'☕ Sub added!':'Adjusted');
+}
+
+// ============================================
+// STREAMS - 7 Revenue Channels
+// ============================================
+const STREAMS=[
+  {name:'Wholesale',target:'$3-10K/mo',desc:'Pizza, coffee, BBQ, hotels',color:'var(--purple)',icon:'🏪',link:''},
+  {name:'Coffee Beans',target:'$1.5K/mo',desc:'4 SKUs via DripShipper subscriptions',color:'var(--orange)',icon:'☕',link:'https://dripshipper.com'},
+  {name:'Coffee Wares',target:'$16K liquidate',desc:'700 filters, grinders, cups, etc',color:'var(--teal)',icon:'📦',link:'https://facebook.com/marketplace'},
+  {name:'Email/D2C',target:'$2-12K Month 1',desc:'31K list via Square reactivation',color:'var(--cyan)',icon:'✉️',link:''},
+  {name:'Catering',target:'$10K pipeline',desc:'Corporate events, weddings',color:'var(--pink)',icon:'🎪',link:'https://order.smithcanon.com'},
+  {name:'Schools',target:'Bulk barrels',desc:'APS portal for Aurora schools',color:'var(--lime)',icon:'🏫',link:'https://schools.smithcanon.com'},
+  {name:'Pop-ups',target:'Variable',desc:'Zoo Bar Lincoln, farmers markets',color:'var(--amber)',icon:'🎉',link:'https://event.smithcanon.com'}
+];
+
+function renderStreams(){
+  let h=`<div style="font-size:12px;color:var(--gray-light);margin-bottom:16px;text-align:center">7 revenue channels to hit $5K+/month</div>`;
+  
+  STREAMS.forEach(s=>{
+    h+=`<div class="p-card" style="border-left-color:${s.color}">
+      <div class="p-card-top">
+        <div class="p-card-title">${s.icon} ${s.name}</div>
+        <div class="p-card-badge" style="background:${s.color}20;color:${s.color}">${s.target}</div>
+      </div>
+      <div class="p-card-meta">${s.desc}</div>
+      ${s.link?`<div class="p-card-actions"><a href="${s.link}" target="_blank" class="p-btn small secondary" style="text-decoration:none">Open →</a></div>`:''}
+    </div>`;
+  });
+  
+  // Quick stats
+  h+=`<div style="margin-top:20px;padding:14px;background:var(--green-dim);border:1px solid var(--green);border-radius:10px">
+    <div style="font-weight:700;color:var(--green);margin-bottom:8px">💰 90-Day Target</div>
+    <div style="font-size:13px;color:var(--gray-light);line-height:1.6">
+      <b>Month 1:</b> $2-12K from email reactivation<br>
+      <b>Month 2-3:</b> 20+ wholesale accounts<br>
+      <b>Ongoing:</b> $5K/month recurring revenue
+    </div>
+  </div>`;
+  
+  document.getElementById('streamsBody').innerHTML=h;
+}
+
+// Add render calls for beans and streams
+function renderBeansPanel(){renderBeans()}
+function renderStreamsPanel(){renderStreams()}
+
+function renderEmail(){
+  const withEmail=S.prospects.filter(p=>p.email&&p.status!=='closed'&&p.status!=='dead');
+  document.getElementById('emlTotal').textContent=withEmail.length;
+  document.getElementById('emlSelected').textContent=batchSelected.length;
+  document.getElementById('emlSent').textContent=sentToday;
+  
+  // Template pills
+  let th='';
+  Object.keys(TEMPLATES).forEach(k=>{
+    th+=`<button class="tpl-pill${curTpl===k?' on':''}" onclick="setTpl('${k}')">${TEMPLATES[k].name}</button>`;
+  });
+  document.getElementById('tplRow').innerHTML=th;
+  
+  // Suggestive sell box
+  const tpl=TEMPLATES[curTpl];
+  document.getElementById('suggestBox').innerHTML=`<div class="suggest-box">
+    <div class="suggest-title">💡 Suggestive Sell</div>
+    <div class="suggest-text">${tpl.suggest}</div>
+  </div>`;
+  
+  // Preview (use first selected or first available)
+  const previewP=batchSelected.length>0?
+    S.prospects.find(p=>p.id===batchSelected[0]):
+    withEmail[0];
+  
+  if(previewP){
+    const subj=tpl.subj.replace(/\[BIZ\]/g,previewP.biz);
+    const body=tpl.body.replace(/\[NAME\]/g,previewP.con||'there').replace(/\[BIZ\]/g,previewP.biz);
+    document.getElementById('emailPreview').innerHTML=`<div class="email-to">To: ${previewP.email}</div>
+<div class="email-subj">Subject: ${subj}</div>
+${body}`;
+  }else{
+    document.getElementById('emailPreview').innerHTML='No prospects with email available';
+  }
+  
+  // Batch list
+  let bh='';
+  withEmail.forEach(p=>{
+    const checked=batchSelected.includes(p.id)?'checked':'';
+    const icon={pizza:'🍕',coffee:'☕',bbq:'🍖'}[p.type]||'📋';
+    bh+=`<div class="batch-item">
+      <input type="checkbox" ${checked} onchange="toggleBatch('${p.id}')">
+      <div class="batch-item-info">
+        <div class="batch-item-name">${icon} ${p.biz}</div>
+        <div class="batch-item-email">${p.email}</div>
+      </div>
+      <div style="font-size:10px;color:var(--gray-light)">${p.status||'lead'}</div>
+    </div>`;
+  });
+  document.getElementById('batchList').innerHTML=bh||'<div style="padding:20px;text-align:center;color:var(--gray-light)">No prospects with email</div>';
+}
+
+function setTpl(t){curTpl=t;renderEmail()}
+
+function toggleBatch(id){
+  const idx=batchSelected.indexOf(id);
+  if(idx>=0)batchSelected.splice(idx,1);
+  else batchSelected.push(id);
+  renderEmail();
+}
+
+function selectAllBatch(){
+  const withEmail=S.prospects.filter(p=>p.email&&p.status!=='closed'&&p.status!=='dead');
+  if(batchSelected.length===withEmail.length){
+    batchSelected=[];
+  }else{
+    batchSelected=withEmail.map(p=>p.id);
+  }
+  renderEmail();
+}
+
+function sendBatch(){
+  if(batchSelected.length===0){
+    toast('Select prospects first');
+    return;
+  }
+  
+  const tpl=TEMPLATES[curTpl];
+  let sent=0;
+  
+  batchSelected.forEach(id=>{
+    const p=S.prospects.find(x=>x.id===id);
+    if(p&&p.email){
+      // Log the send
+      p.lastContact=new Date().toISOString().split('T')[0];
+      if(p.status==='lead')p.status='contacted';
+      const fu=new Date();fu.setDate(fu.getDate()+3);
+      p.followUp=fu.toISOString().split('T')[0];
+      p.history=p.history||[];
+      p.history.push({date:p.lastContact,action:'Email: '+tpl.name,template:curTpl});
+      sent++;
+    }
+  });
+  
+  sentToday+=sent;
+  save();
+  
+  // Open first email in mailto (batch = user sends one by one)
+  const firstP=S.prospects.find(x=>x.id===batchSelected[0]);
+  if(firstP){
+    const subj=encodeURIComponent(tpl.subj.replace(/\[BIZ\]/g,firstP.biz));
+    const body=encodeURIComponent(tpl.body.replace(/\[NAME\]/g,firstP.con||'there').replace(/\[BIZ\]/g,firstP.biz));
+    window.location.href=`mailto:${firstP.email}?subject=${subj}&body=${body}`;
+  }
+  
+  batchSelected=[];
+  renderEmail();
+  updStats();
+  toast(`📧 ${sent} logged, opening first...`);
+}
+
+function renderProd(){
+  let made=0;for(let k in S.production)made+=S.production[k]||0;
+  document.getElementById('prodMade').textContent=made;
+  document.getElementById('prodLeft').textContent=Math.max(0,40-made);
+  
+  const days=['Mon','Tue','Wed','Thu','Fri'];
+  const now=new Date();
+  const ws=new Date(now);ws.setDate(now.getDate()-now.getDay()+1);
+  
+  let h='<div style="font-family:Oswald;font-size:14px;color:var(--red);margin-bottom:8px;letter-spacing:.1em">THIS WEEK</div>';
+  
+  // Week grid
+  h+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px">';
+  for(let i=0;i<5;i++){
+    const d=new Date(ws);d.setDate(ws.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    const isToday=ds===now.toISOString().split('T')[0];
+    const count=S.production[ds]||0;
+    
+    h+=`<div style="background:var(--gray-mid);border-radius:8px;padding:10px;text-align:center;${isToday?'border:2px solid var(--amber)':''}">
+      <div style="font-size:10px;color:var(--gray-light)">${days[i]}</div>
+      <div style="font-family:Oswald;font-size:24px;font-weight:700;color:${count>=8?'var(--green)':count>0?'var(--amber)':'var(--gray-light)'}">${count}</div>
+      <div style="display:flex;gap:4px;justify-content:center;margin-top:6px">
+        <button onclick="logP('${ds}',-4)" style="width:24px;height:24px;border-radius:4px;background:var(--red-dim);color:var(--red);border:none;cursor:pointer;font-weight:700">-</button>
+        <button onclick="logP('${ds}',4)" style="width:24px;height:24px;border-radius:4px;background:var(--green-dim);color:var(--green);border:none;cursor:pointer;font-weight:700">+</button>
+      </div>
+    </div>`;
+  }
+  h+='</div>';
+  
+  // Progress bar
+  const pct=Math.min(100,Math.round((made/40)*100));
+  h+=`<div style="margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--gray-light);margin-bottom:4px">
+      <span>${made} barrels made</span>
+      <span>${pct}% of 40</span>
+    </div>
+    <div style="height:8px;background:var(--gray-faint);border-radius:4px">
+      <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green));border-radius:4px;transition:width .3s"></div>
+    </div>
+  </div>`;
+  
+  // Inventory by flavor
+  h+='<div style="font-family:Oswald;font-size:14px;color:var(--red);margin:16px 0 8px;letter-spacing:.1em">INVENTORY</div>';
+  
+  S.inventory=S.inventory||{};
+  const coreFlavors=['Butterbrickle','Salted Caramel','Foxy Brown','Black Coffee','Thai Iced Tea','El Chupacabra'];
+  
+  h+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">';
+  coreFlavors.forEach(f=>{
+    const count=S.inventory[f]||0;
+    const low=count<3;
+    h+=`<div style="background:var(--gray-mid);border-radius:8px;padding:10px;${low?'border:1px solid var(--red)':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;font-weight:600">${f}</span>
+        <span style="font-family:Oswald;font-size:18px;color:${low?'var(--red)':'var(--amber)'}">${count}</span>
+      </div>
+      <div style="display:flex;gap:4px;margin-top:6px">
+        <button onclick="adjInv('${f}',-1)" style="flex:1;height:24px;border-radius:4px;background:var(--gray-faint);color:var(--white);border:none;cursor:pointer;font-size:12px">-1</button>
+        <button onclick="adjInv('${f}',1)" style="flex:1;height:24px;border-radius:4px;background:var(--green-dim);color:var(--green);border:none;cursor:pointer;font-size:12px">+1</button>
+      </div>
+    </div>`;
+  });
+  h+='</div>';
+  
+  document.getElementById('prodBody').innerHTML=h;
+}
+
+function logP(d,n){
+  S.production[d]=(S.production[d]||0)+n;
+  if(S.production[d]<0)S.production[d]=0;
+  save();renderProd();updStats();
+  toast(n>0?'🧈 +4 barrels':'Adjusted');
+}
+
+function adjInv(f,n){
+  S.inventory=S.inventory||{};
+  S.inventory[f]=(S.inventory[f]||0)+n;
+  if(S.inventory[f]<0)S.inventory[f]=0;
+  save();renderProd();
+  toast(n>0?'📦 Added':'Removed');
+}
+
+function scheduleProduction(){
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+  const ds=tomorrow.toISOString().split('T')[0];
+  
+  // Check if already scheduled
+  const exists=S.events.find(e=>e.date===ds&&e.type==='production');
+  if(exists){
+    toast('Already scheduled for tomorrow');
+    return;
+  }
+  
+  S.events.push({
+    id:uid(),
+    date:ds,
+    time:'14:00',
+    type:'production',
+    title:'Production 2-6pm',
+    notes:'VB-60 batch run'
+  });
+  
+  save();updDisplay();
+  toast('📅 Production scheduled');
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ============================================
+// INIT
+// ============================================
+load();
+
+// Add demo events if none exist (for mockup testing)
+if(S.events.length===0){
+  const today=new Date();
+  const ds=today.toISOString().split('T')[0];
+  const tomorrow=new Date(today);tomorrow.setDate(today.getDate()+1);
+  const tom=tomorrow.toISOString().split('T')[0];
+  const nextWeek=new Date(today);nextWeek.setDate(today.getDate()+5);
+  const nw=nextWeek.toISOString().split('T')[0];
+  
+  // Today's events
+  S.events.push({id:uid(),date:ds,time:'10:00',type:'sample',title:'Sample: Pizzeria Lui',notes:'Zach - 4 flavors'});
+  S.events.push({id:uid(),date:ds,time:'14:00',type:'production',title:'Production 2-6pm',notes:'VB-60 batch'});
+  S.events.push({id:uid(),date:ds,time:'16:30',type:'work',title:'Call: Kaos Pizza',notes:'Patrick follow-up'});
+  
+  // Tomorrow
+  S.events.push({id:uid(),date:tom,time:'09:00',type:'work',title:'Woodys meeting',notes:'Jon - pricing'});
+  S.events.push({id:uid(),date:tom,time:'11:00',type:'sample',title:'Sample: Brockmeyers',notes:'Brock - affogato'});
+  
+  // Next week
+  S.events.push({id:uid(),date:nw,time:'10:00',type:'work',title:'Moes BBQ pitch',notes:'Mike'});
+  
+  save();
+}
+
+updClock();
+setInterval(updClock,1000);
+updDisplay();
+setInterval(updOrbital,60000);
+
+// Screensaver after 2 min idle
+let idleTimer;
+function resetIdle(){
+  document.body.classList.remove('screensaver');
+  clearTimeout(idleTimer);
+  idleTimer=setTimeout(()=>document.body.classList.add('screensaver'),120000);
+}
+document.addEventListener('touchstart',resetIdle);
+document.addEventListener('click',resetIdle);
+resetIdle();
+</script>
+</body>
+</html>
